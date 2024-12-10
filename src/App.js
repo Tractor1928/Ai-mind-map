@@ -1,96 +1,131 @@
-
 // src/App.js
-import React, { useState, useRef } from 'react';
-import NodeList from './components/NodeList';
-import AIHandler from './handlers/AIHandler';
+import React, { useState } from 'react';
+import './App.css';
 
 function App() {
-  const [nodes, setNodes] = useState([{ id: 1, text: '初始节点', children: [] }]);
-  const [selectedNodeId, setSelectedNodeId] = useState(null);
-  const canvasRef = useRef(null);
-  const startPosition = useRef({ x: 0, y: 0 });
-  const isDragging = useRef(false);
+  const [basePosition, setBasePosition] = useState({ x: 0, y: 0 });
+  const [rectangles, setRectangles] = useState([1]); // 只存储矩形的数量
+  const [selectedRect, setSelectedRect] = useState(null); // 添加新的状态
+  const [texts, setTexts] = useState({}); // 新增：存储文本内容
+  const [editingRect, setEditingRect] = useState(null); // 新增：当前正在编辑的矩形
+  
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        setRectangles(prev => [...prev, prev.length + 1]);
+      }
+    };
 
-  const addNode = (parentId) => {
-    setNodes((prevNodes) => {
-      const addNodeRecursive = (nodes) => {
-        return nodes.map((node) => {
-          if (node.id === parentId) {
-            const childCount = node.children.length + 1;
-            const newNode = { id: prevNodes.length + 1, text: `${node.text} ${childCount}`, children: [] };
-            return { ...node, children: [...node.children, newNode] };
-          } else {
-            return { ...node, children: addNodeRecursive(node.children) };
-          }
-        });
-      };
-      return addNodeRecursive(prevNodes);
-    });
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // 保持原有的移动处理逻辑
+  const handleMouseDown = (e) => {
+    const startX = e.clientX - basePosition.x;
+    const startY = e.clientY - basePosition.y;
+
+    const handleMouseMove = (e) => {
+      setBasePosition({
+        x: e.clientX - startX,
+        y: e.clientY - startY
+      });
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const generateAnswer = async (parentId, text) => {
-    const answer = await AIHandler(text);
-    setNodes((prevNodes) => {
-      const addNodeRecursive = (nodes) => {
-        return nodes.map((node) => {
-          if (node.id === parentId) {
-            const childCount = node.children.length + 1;
-            const newNode = { id: prevNodes.length + 1, text: `${answer} ${childCount}`, children: [] };
-            return { ...node, children: [...node.children, newNode] };
-          } else {
-            return { ...node, children: addNodeRecursive(node.children) };
-          }
-        });
-      };
-      return addNodeRecursive(prevNodes);
-    });
+  // 添加矩形点击处理函数
+  const handleRectClick = (e, id) => {
+    e.stopPropagation(); // 防止事件冒泡到 svg
+    setSelectedRect(id);
   };
 
-  const handleSelectNode = (nodeId) => {
-    setSelectedNodeId(nodeId);
+  // 添加画布点击处理函数，用于取消选择
+  const handleCanvasClick = () => {
+    setSelectedRect(null);
   };
 
-  // 画布拖动逻辑...
-  const handleMouseDown = (event) => {
-    isDragging.current = true;
-    startPosition.current = { x: event.clientX, y: event.clientY };
+  // 新增：处理双击事件，激活编辑模式
+  const handleRectDoubleClick = (e, id) => {
+    e.stopPropagation();
+    setEditingRect(id);
   };
 
-  const handleMouseMove = (event) => {
-    if (!isDragging.current) return;
-
-    const dx = event.clientX - startPosition.current.x;
-    const dy = event.clientY - startPosition.current.y;
-
-    if (canvasRef.current) {
-      canvasRef.current.scrollLeft -= dx;
-      canvasRef.current.scrollTop -= dy;
-    }
-
-    startPosition.current = { x: event.clientX, y: event.clientY };
+  // 新增：处理文本变化
+  const handleTextChange = (id, value) => {
+    setTexts(prev => ({
+      ...prev,
+      [id]: value
+    }));
   };
 
-  const handleMouseUp = () => {
-    isDragging.current = false;
+  // 新增：处理文本编辑完成
+  const handleTextBlur = () => {
+    setEditingRect(null);
   };
 
   return (
-    <div
-      className="App"
-      ref={canvasRef}
-      style={{ overflow: 'auto', width: '100vw', height: '100vh' }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-    >
-      <h1>标题</h1>
-      <NodeList
-        nodes={nodes}
-        onAddNode={addNode}
-        onGenerateAnswer={generateAnswer}
-        onSelectNode={handleSelectNode}
-        selectedNodeId={selectedNodeId}
-      />
+    <div className="App">
+      <svg className="canvas" 
+        onMouseDown={handleMouseDown}
+        onClick={handleCanvasClick} // 添加画布点击事件
+      >
+        {rectangles.map((id, index) => (
+          <g key={id}>
+            <rect
+              x={50 + (index * 220) + basePosition.x}
+              y={50 + basePosition.y}
+              width={200}
+              height={60}
+              className={`rectangle ${selectedRect === id ? 'selected' : ''}`}
+              fill="transparent"
+              onClick={(e) => handleRectClick(e, id)} // 添加点击事件
+              onDoubleClick={(e) => handleRectDoubleClick(e, id)}
+            />
+            {editingRect === id ? (
+              <foreignObject
+                x={50 + (index * 220) + basePosition.x}
+                y={50 + basePosition.y}
+                width={200}
+                height={60}
+              >
+                <input
+                  type="text"
+                  value={texts[id] || ''}
+                  onChange={(e) => handleTextChange(id, e.target.value)}
+                  onBlur={handleTextBlur}
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    background: 'transparent',
+                    textAlign: 'center',
+                    outline: 'none'
+                  }}
+                />
+              </foreignObject>
+            ) : (
+              <text
+                x={50 + (index * 220) + basePosition.x + 100}
+                y={50 + basePosition.y + 35}
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                {texts[id] || ''}
+              </text>
+            )}
+          </g>
+        ))}
+      </svg>
     </div>
   );
 }
