@@ -1,25 +1,36 @@
 // src/App.js
 import React, { useState } from 'react';
 import './App.css';
+import { RectNode, NODE_TYPES } from './models/RectNode';
 
 function App() {
   const [basePosition, setBasePosition] = useState({ x: 0, y: 0 });
-  const [rectangles, setRectangles] = useState([1]); // 只存储矩形的数量
-  const [selectedRect, setSelectedRect] = useState(null); // 添加新的状态
-  const [texts, setTexts] = useState({}); // 新增：存储文本内容
-  const [editingRect, setEditingRect] = useState(null); // 新增：当前正在编辑的矩形
-  
+  const [rectangles, setRectangles] = useState([]); // 修改为对象数组
+  const [selectedRect, setSelectedRect] = useState(null);
+  const [editingRect, setEditingRect] = useState(null);
+
   React.useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Tab') {
         e.preventDefault();
-        setRectangles(prev => [...prev, prev.length + 1]);
+        const nodeType = rectangles.length % 2 === 0 ? 
+          NODE_TYPES.QUESTION : 
+          NODE_TYPES.ANSWER;
+        
+        const newNode = new RectNode(
+          rectangles.length + 1,
+          50 + (rectangles.length * 220),
+          50,
+          '',  // 默认文本
+          nodeType  // 设置节点类型
+        );
+        setRectangles(prev => [...prev, newNode]);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [rectangles.length]);
 
   // 保持原有的移动处理逻辑
   const handleMouseDown = (e) => {
@@ -59,12 +70,11 @@ function App() {
     setEditingRect(id);
   };
 
-  // 新增：处理文本变化
+  // ��增：处理文本变化
   const handleTextChange = (id, value) => {
-    setTexts(prev => ({
-      ...prev,
-      [id]: value
-    }));
+    setRectangles(prev => prev.map(rect =>
+      rect.id === id ? { ...rect, text: value } : rect
+    ));
   };
 
   // 新增：处理文本编辑完成
@@ -76,31 +86,31 @@ function App() {
     <div className="App">
       <svg className="canvas" 
         onMouseDown={handleMouseDown}
-        onClick={handleCanvasClick} // 添加画布点击事件
+        onClick={handleCanvasClick}
       >
-        {rectangles.map((id, index) => (
-          <g key={id}>
+        {rectangles.map((rect) => (
+          <g key={rect.id}>
             <rect
-              x={50 + (index * 220) + basePosition.x}
-              y={50 + basePosition.y}
+              x={rect.x + basePosition.x}
+              y={rect.y + basePosition.y}
               width={200}
               height={60}
-              className={`rectangle ${selectedRect === id ? 'selected' : ''}`}
+              className={`rectangle ${selectedRect === rect.id ? 'selected' : ''} ${rect.type}`}
               fill="transparent"
-              onClick={(e) => handleRectClick(e, id)} // 添加点击事件
-              onDoubleClick={(e) => handleRectDoubleClick(e, id)}
+              onClick={(e) => handleRectClick(e, rect.id)}
+              onDoubleClick={(e) => handleRectDoubleClick(e, rect.id)}
             />
-            {editingRect === id ? (
+            {editingRect === rect.id ? (
               <foreignObject
-                x={50 + (index * 220) + basePosition.x}
-                y={50 + basePosition.y}
+                x={rect.x + basePosition.x}
+                y={rect.y + basePosition.y}
                 width={200}
                 height={60}
               >
                 <input
                   type="text"
-                  value={texts[id] || ''}
-                  onChange={(e) => handleTextChange(id, e.target.value)}
+                  value={rect.text}
+                  onChange={(e) => handleTextChange(rect.id, e.target.value)}
                   onBlur={handleTextBlur}
                   autoFocus
                   style={{
@@ -115,12 +125,12 @@ function App() {
               </foreignObject>
             ) : (
               <text
-                x={50 + (index * 220) + basePosition.x + 100}
-                y={50 + basePosition.y + 35}
+                x={rect.x + basePosition.x + 100}
+                y={rect.y + basePosition.y + 35}
                 textAnchor="middle"
                 dominantBaseline="middle"
               >
-                {texts[id] || ''}
+                {rect.text}
               </text>
             )}
           </g>

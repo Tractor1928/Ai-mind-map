@@ -23,3 +23,11 @@
 text {
   user-select: none;
 }
+
+.rectangle.question {
+  stroke: #4CAF50;  /* 问题节点使用绿色边框 */
+}
+
+.rectangle.answer {
+  stroke: #2196F3;  /* 回答节点使用蓝色边框 */
+}
