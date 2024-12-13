@@ -12,8 +12,8 @@ class RectNode {
     this.y = y;
     this.text = text;
     this.type = type;
-    this.next = null;
-    this.prev = null;
+    this.parentId = null;    // 添加父节点ID
+    this.childrenIds = [];   // 添加子节点ID数组
   }
 
   updatePosition(x, y) {
@@ -27,6 +27,18 @@ class RectNode {
 
   updateType(type) {
     this.type = type;
+  }
+  
+  // 添加设置父节点的方法
+  setParent(parentId) {
+    this.parentId = parentId;
+  }
+
+  // 添加子节点的方法
+  addChild(childId) {
+    if (!this.childrenIds.includes(childId)) {
+      this.childrenIds.push(childId);
+    }
   }
 }
 

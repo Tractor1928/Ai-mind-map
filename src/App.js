@@ -8,7 +8,6 @@ function App() {
   const [rectangles, setRectangles] = useState([]); // 修改为对象数组
   const [selectedRect, setSelectedRect] = useState(null);
   const [editingRect, setEditingRect] = useState(null);
-
   React.useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Tab') {
@@ -17,22 +16,18 @@ function App() {
           NODE_TYPES.QUESTION : 
           NODE_TYPES.ANSWER;
         
-        // 获取当前选中的矩形
         const currentRect = rectangles.find(r => r.id === selectedRect);
         
-        // 计算新节点的位置
         let newX, newY;
         if (currentRect) {
-          // 如果有选中的矩形，在其右侧创建新节点
           const rightSideRects = rectangles.filter(r => 
-            Math.abs(r.x - (currentRect.x + 250)) < 10  // 在当前矩形右侧220px处的矩形
+            Math.abs(r.x - (currentRect.x + 250)) < 10
           );
-          newX = currentRect.x + 250;  // 在选中矩形右侧250px处
+          newX = currentRect.x + 250;
           newY = rightSideRects.length > 0 
-            ? Math.max(...rightSideRects.map(r => r.y)) + 80  // 在最下方矩形下方80px
-            : currentRect.y;  // 如果是该列第一个，则与选中矩形同高
+            ? Math.max(...rightSideRects.map(r => r.y)) + 80
+            : currentRect.y;
         } else {
-          // 如果没有选中的矩形，使用默认位置
           newX = 50;
           newY = 50;
         }
@@ -44,13 +39,26 @@ function App() {
           '',
           nodeType
         );
+  
+        // 设置父子关系
+        if (currentRect) {
+          newNode.setParent(currentRect.id);
+          setRectangles(prev => prev.map(rect => {
+            if (rect.id === currentRect.id) {
+              rect.addChild(newNode.id);
+            }
+            return rect;
+          }));
+        }
+  
         setRectangles(prev => [...prev, newNode]);
+        setSelectedRect(newNode.id); // 选中新创建的节点
       }
     };
-
+  
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [rectangles, selectedRect]); // 添加 selectedRect 作为依赖
+  }, [rectangles, selectedRect]);
 
   // 保持原有的移动处理逻辑
   const handleMouseDown = (e) => {
@@ -108,6 +116,24 @@ function App() {
         onMouseDown={handleMouseDown}
         onClick={handleCanvasClick}
       >
+         {/* 渲染连接线 */}
+         {rectangles.map((rect) => (
+            rect.parentId && (
+              <path
+                key={`line-${rect.id}`}
+                d={`
+                  M ${rectangles.find(r => r.id === rect.parentId).x + basePosition.x + 200} ${rectangles.find(r => r.id === rect.parentId).y + basePosition.y + 30}
+                  C ${rectangles.find(r => r.id === rect.parentId).x + basePosition.x + 250} ${rectangles.find(r => r.id === rect.parentId).y + basePosition.y + 30},
+                    ${rect.x + basePosition.x - 50} ${rect.y + basePosition.y + 30},
+                    ${rect.x + basePosition.x} ${rect.y + basePosition.y + 30}
+                `}
+                fill="none"
+                stroke="#999"
+                strokeWidth="1"
+              />
+            )
+          ))}
+      
         {rectangles.map((rect) => (
           <g key={rect.id}>
             <rect
