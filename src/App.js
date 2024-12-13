@@ -12,22 +12,58 @@ function App() {
     const handleKeyDown = (e) => {
       if (e.key === 'Tab') {
         e.preventDefault();
+        
         const nodeType = rectangles.length % 2 === 0 ? 
           NODE_TYPES.QUESTION : 
           NODE_TYPES.ANSWER;
         
         const currentRect = rectangles.find(r => r.id === selectedRect);
         
-        let newX, newY;
+        let newX, newY, newLevel;
         if (currentRect) {
-          const rightSideRects = rectangles.filter(r => 
-            Math.abs(r.x - (currentRect.x + 250)) < 10
-          );
-          newX = currentRect.x + 250;
-          newY = rightSideRects.length > 0 
-            ? Math.max(...rightSideRects.map(r => r.y)) + 80
-            : currentRect.y;
+          newLevel = currentRect.level + 1;
+          newX = 50 + (newLevel * 250);
+          
+          // 获取当前选中节点的所有子节点
+          const childNodes = rectangles.filter(r => r.parentId === currentRect.id);
+          
+          // 计算新的Y坐标
+          if (childNodes.length === 0) {
+            // 如果是第一个子节点，直接对齐父节点
+            newY = currentRect.y;
+          } else {
+            // 重新计算所有子节点的位置
+            const totalHeight = (childNodes.length + 1) * 80; // +1 为新节点预留空间
+            const startY = currentRect.y - (totalHeight / 2) + 40; // 40是节点高度的一半
+            
+            // 更新现有子节点的位置
+            const updatedRects = [...rectangles];
+            childNodes.forEach((child, index) => {
+              const rect = updatedRects.find(r => r.id === child.id);
+              if (rect) {
+                rect.y = startY + (index * 80);
+              }
+            });
+            setRectangles(updatedRects);
+            
+            // 新节点的位置
+            newY = startY + (childNodes.length * 80);
+          }
+          
+          // 递归更新所有受影响的节点位置
+          const updateDescendantsPosition = (nodeId, offsetY) => {
+            const descendants = rectangles.filter(r => r.parentId === nodeId);
+            descendants.forEach(desc => {
+              desc.y += offsetY;
+              updateDescendantsPosition(desc.id, offsetY);
+            });
+          };
+          
+          // 如果需要，更新当前节点所有后代节点的位置
+          updateDescendantsPosition(currentRect.id, 0);
         } else {
+          // 第一个节点的位置保持不变
+          newLevel = 0;
           newX = 50;
           newY = 50;
         }
@@ -39,8 +75,8 @@ function App() {
           '',
           nodeType
         );
-  
-        // 设置父子关系
+        newNode.setLevel(newLevel);
+
         if (currentRect) {
           newNode.setParent(currentRect.id);
           setRectangles(prev => prev.map(rect => {
@@ -50,12 +86,12 @@ function App() {
             return rect;
           }));
         }
-  
+
         setRectangles(prev => [...prev, newNode]);
-        setSelectedRect(newNode.id); // 选中新创建的节点
+        setSelectedRect(newNode.id);
       }
     };
-  
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [rectangles, selectedRect]);

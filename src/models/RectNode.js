@@ -14,6 +14,7 @@ class RectNode {
     this.type = type;
     this.parentId = null;    // 添加父节点ID
     this.childrenIds = [];   // 添加子节点ID数组
+    this.level = 0;  // 添加层级属性
   }
 
   updatePosition(x, y) {
@@ -39,6 +40,11 @@ class RectNode {
     if (!this.childrenIds.includes(childId)) {
       this.childrenIds.push(childId);
     }
+  }
+
+  // 添加设置层级的方法
+  setLevel(level) {
+    this.level = level;
   }
 }
 
