@@ -1,3 +1,4 @@
+/* src/App.css */
 .App {
   width: 100%;
   height: 100vh;
@@ -7,12 +8,18 @@
 .canvas {
   width: 100%;
   height: 100vh;
+  background-color: #f5f5f5;
 }
 
 .rectangle {
   stroke: #000;
   stroke-width: 1;
   cursor: pointer;
+  fill: white;
+}
+
+.rectangle:hover {
+  fill: #f0f0f0;
 }
 
 .selected {
@@ -22,16 +29,24 @@
 
 text {
   user-select: none;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
 }
 
 .rectangle.question {
-  stroke: #4CAF50;  /* 问题节点使用绿色边框 */
+  stroke: #4CAF50;
 }
 
 .rectangle.answer {
-  stroke: #2196F3;  /* 回答节点使用蓝色边框 */
+  stroke: #2196F3;
 }
 
-line {
-  pointer-events: none; /* 使连接线不影响鼠标事件 */
+path {
+  pointer-events: none;
+}
+
+foreignObject input {
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  padding: 5px;
 }

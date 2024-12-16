@@ -15,6 +15,9 @@ class RectNode {
     this.parentId = null;    // 添加父节点ID
     this.childrenIds = [];   // 添加子节点ID数组
     this.level = 0;  // 添加层级属性
+    this.width = 200;    // 添加默认宽度
+    this.height = 100;   // 添加默认高度
+    this.childrenTotalHeight = 0;  // 添加子节点总高度属性
   }
 
   updatePosition(x, y) {
@@ -45,6 +48,31 @@ class RectNode {
   // 添加设置层级的方法
   setLevel(level) {
     this.level = level;
+  }
+
+  // 添加设置尺寸的方法
+  setDimensions(width, height) {
+    this.width = width;
+    this.height = height;
+  }
+
+  // 计算所有子节点的总高度
+  calculateChildrenTotalHeight(allNodes) {
+    if (this.childrenIds.length === 0) {
+      this.childrenTotalHeight = 0;
+      return 0;
+    }
+
+    let totalHeight = 0;
+    for (const childId of this.childrenIds) {
+      const childNode = allNodes.find(node => node.id === childId);
+      if (childNode) {
+        totalHeight += childNode.height;
+      }
+    }
+    
+    this.childrenTotalHeight = totalHeight;
+    return totalHeight;
   }
 }
 
