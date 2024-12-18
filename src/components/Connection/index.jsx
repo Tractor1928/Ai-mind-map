@@ -6,8 +6,8 @@ const Connection = ({ startNode, endNode, basePosition }) => {
     <path
       d={`
         M ${startNode.x + basePosition.x + 200} ${startNode.y + basePosition.y + 30}
-        C ${startNode.x + basePosition.x + 250} ${startNode.y + basePosition.y + 30},
-          ${endNode.x + basePosition.x - 50} ${endNode.y + basePosition.y + 30},
+        C ${startNode.x + basePosition.x + 220} ${startNode.y + basePosition.y + 30},
+          ${endNode.x + basePosition.x - 20} ${endNode.y + basePosition.y + 30},
           ${endNode.x + basePosition.x} ${endNode.y + basePosition.y + 30}
       `}
       fill="none"

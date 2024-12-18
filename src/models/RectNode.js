@@ -63,14 +63,22 @@ class RectNode {
       return 0;
     }
 
-    let totalHeight = 0;
+    let minY = Infinity;
+    let maxY = -Infinity;
+
     for (const childId of this.childrenIds) {
       const childNode = allNodes.find(node => node.id === childId);
       if (childNode) {
-        totalHeight += childNode.height;
+        if (childNode.y < minY) {
+          minY = childNode.y;
+        }
+        if (childNode.y + childNode.height > maxY) {
+          maxY = childNode.y + childNode.height;
+        }
       }
     }
-    
+
+    const totalHeight = maxY - minY;
     this.childrenTotalHeight = totalHeight;
     return totalHeight;
   }
