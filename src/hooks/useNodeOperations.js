@@ -1,62 +1,53 @@
 // src/hooks/useNodeOperations.js
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { RectNode, NODE_TYPES } from '../models/RectNode';
+import { calculateTreeLayout } from '../utils/d3TreeLayout';
 
 export const useNodeOperations = () => {
   const [rectangles, setRectangles] = useState([]);
   const [selectedRect, setSelectedRect] = useState(null);
   const [editingRect, setEditingRect] = useState(null);
+  const [shouldUpdateLayout, setShouldUpdateLayout] = useState(false);
 
-  const addNode = (currentRect) => {
+  // 仅在节点添加或删除时更新布局
+  useEffect(() => {
+    if (shouldUpdateLayout && rectangles.length > 0) {
+      const updatedRects = calculateTreeLayout([...rectangles]);
+      setRectangles(updatedRects);
+      setShouldUpdateLayout(false);
+    }
+  }, [shouldUpdateLayout, rectangles]);
+
+  const addNode = useCallback((currentRect) => {
     const nodeType = rectangles.length % 2 === 0 ? 
       NODE_TYPES.QUESTION : 
       NODE_TYPES.ANSWER;
 
-    let newX, newY, newLevel;
-    if (currentRect) {
-      newLevel = currentRect.level + 1;
-      newX = 50 + (newLevel * 250);
-      
-      const childNodes = rectangles.filter(r => r.parentId === currentRect.id);
-      
-      if (childNodes.length === 0) {
-        newY = currentRect.y;
-      } else {
-        const totalHeight = (childNodes.length + 1) * 80;
-        const startY = currentRect.y - (totalHeight / 2) + 40;
-        
-        const updatedRects = [...rectangles];
-        childNodes.forEach((child, index) => {
-          const rect = updatedRects.find(r => r.id === child.id);
-          if (rect) {
-            rect.y = startY + (index * 80);
-          }
-        });
-        setRectangles(updatedRects);
-        
-        newY = startY + (childNodes.length * 80);
-      }
-    } else {
-      newLevel = 0;
-      newX = 50;
-      newY = 50;
-    }
-
     const newNode = new RectNode(
       Date.now(),
-      newX,
-      newY,
+      0,
+      0,
       '',
       nodeType
     );
 
-    newNode.setLevel(newLevel);
-    
     if (currentRect) {
       newNode.setParent(currentRect.id);
+      newNode.setLevel(currentRect.level + 1);
       const updatedRects = rectangles.map(rect => {
         if (rect.id === currentRect.id) {
-          rect.addChild(newNode.id);
+          const updatedRect = new RectNode(
+            rect.id,
+            rect.x,
+            rect.y,
+            rect.text,
+            rect.type
+          );
+          updatedRect.parentId = rect.parentId;
+          updatedRect.childrenIds = [...rect.childrenIds];
+          updatedRect.level = rect.level;
+          updatedRect.addChild(newNode.id);
+          return updatedRect;
         }
         return rect;
       });
@@ -67,13 +58,27 @@ export const useNodeOperations = () => {
 
     setSelectedRect(newNode.id);
     setEditingRect(newNode.id);
-  };
+    setShouldUpdateLayout(true);
+  }, [rectangles]);
 
-  const updateNodeText = (id, text) => {
-    setRectangles(prev => prev.map(rect =>
-      rect.id === id ? { ...rect, text } : rect
-    ));
-  };
+  const updateNodeText = useCallback((id, text) => {
+    setRectangles(prev => prev.map(rect => {
+      if (rect.id === id) {
+        const updatedRect = new RectNode(
+          rect.id,
+          rect.x,
+          rect.y,
+          text,
+          rect.type
+        );
+        updatedRect.parentId = rect.parentId;
+        updatedRect.childrenIds = [...rect.childrenIds];
+        updatedRect.level = rect.level;
+        return updatedRect;
+      }
+      return rect;
+    }));
+  }, []);
 
   return {
     rectangles,

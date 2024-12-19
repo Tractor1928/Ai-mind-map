@@ -21,6 +21,20 @@ const Canvas = ({
       onMouseDown={onMouseDown}
       onClick={onCanvasClick}
     >
+      <defs>
+        <marker
+          id="arrowhead"
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#999"/>
+        </marker>
+      </defs>
+      
       {rectangles.map((rect) => (
         rect.parentId && (
           <Connection
