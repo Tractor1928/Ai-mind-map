@@ -9,12 +9,12 @@ const Connection = ({ startNode, endNode, basePosition }) => {
 
   const path = linkGenerator({
     source: {
-      x: startNode.x + basePosition.x + 200,
-      y: startNode.y + basePosition.y + 30
+      x: startNode.x + basePosition.x + startNode.width,
+      y: startNode.y + basePosition.y + (startNode.height / 2)
     },
     target: {
       x: endNode.x + basePosition.x,
-      y: endNode.y + basePosition.y + 30
+      y: endNode.y + basePosition.y + (endNode.height / 2)
     }
   });
 

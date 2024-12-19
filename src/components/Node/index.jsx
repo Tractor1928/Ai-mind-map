@@ -1,5 +1,6 @@
 // src/components/Node/index.jsx
 import React from 'react';
+import './Node.css';
 
 const Node = ({ 
   node, 
@@ -11,51 +12,65 @@ const Node = ({
   onTextChange,
   onTextBlur 
 }) => {
+  const renderText = () => {
+    if (isEditing) {
+      return (
+        <foreignObject
+          x={node.x + basePosition.x}
+          y={node.y + basePosition.y}
+          width={node.width}
+          height={node.height}
+        >
+          <textarea
+            value={node.text}
+            onChange={(e) => onTextChange(node.id, e.target.value)}
+            onBlur={onTextBlur}
+            autoFocus
+            className="node-textarea"
+            style={{
+              width: '100%',
+              height: '100%',
+              padding: `${node.padding}px`,
+              fontSize: `${node.fontSize}px`,
+              fontFamily: node.fontFamily,
+              lineHeight: '1.2',
+            }}
+          />
+        </foreignObject>
+      );
+    }
+
+    return (
+      <text
+        x={node.x + basePosition.x + (node.width / 2)}
+        y={node.y + basePosition.y + node.padding + node.fontSize}
+        textAnchor="middle"
+      >
+        {node.lines.map((line, i) => (
+          <tspan
+            key={i}
+            x={node.x + basePosition.x + (node.width / 2)}
+            dy={i === 0 ? 0 : node.fontSize * 1.2}
+          >
+            {line}
+          </tspan>
+        ))}
+      </text>
+    );
+  };
+
   return (
     <g>
       <rect
         x={node.x + basePosition.x}
         y={node.y + basePosition.y}
-        width={200}
-        height={60}
+        width={node.width}
+        height={node.height}
         className={`rectangle ${isSelected ? 'selected' : ''} ${node.type}`}
-        fill="transparent"
         onClick={(e) => onNodeClick(e, node.id)}
         onDoubleClick={(e) => onNodeDoubleClick(e, node.id)}
       />
-      {isEditing ? (
-        <foreignObject
-          x={node.x + basePosition.x}
-          y={node.y + basePosition.y}
-          width={200}
-          height={60}
-        >
-          <input
-            type="text"
-            value={node.text}
-            onChange={(e) => onTextChange(node.id, e.target.value)}
-            onBlur={onTextBlur}
-            autoFocus
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              background: 'transparent',
-              textAlign: 'center',
-              outline: 'none'
-            }}
-          />
-        </foreignObject>
-      ) : (
-        <text
-          x={node.x + basePosition.x + 100}
-          y={node.y + basePosition.y + 35}
-          textAnchor="middle"
-          dominantBaseline="middle"
-        >
-          {node.text}
-        </text>
-      )}
+      {renderText()}
     </g>
   );
 };

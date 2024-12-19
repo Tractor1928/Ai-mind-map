@@ -62,22 +62,29 @@ export const useNodeOperations = () => {
   }, [rectangles]);
 
   const updateNodeText = useCallback((id, text) => {
-    setRectangles(prev => prev.map(rect => {
-      if (rect.id === id) {
-        const updatedRect = new RectNode(
-          rect.id,
-          rect.x,
-          rect.y,
-          text,
-          rect.type
-        );
-        updatedRect.parentId = rect.parentId;
-        updatedRect.childrenIds = [...rect.childrenIds];
-        updatedRect.level = rect.level;
-        return updatedRect;
-      }
-      return rect;
-    }));
+    setRectangles(prev => {
+      const updatedRects = prev.map(rect => {
+        if (rect.id === id) {
+          const updatedRect = new RectNode(
+            rect.id,
+            rect.x,
+            rect.y,
+            text,
+            rect.type
+          );
+          updatedRect.parentId = rect.parentId;
+          updatedRect.childrenIds = [...rect.childrenIds];
+          updatedRect.level = rect.level;
+          updatedRect.updateText(text);
+          return updatedRect;
+        }
+        return rect;
+      });
+      
+      // 触发布局重新计算
+      setShouldUpdateLayout(true);
+      return updatedRects;
+    });
   }, []);
 
   return {
