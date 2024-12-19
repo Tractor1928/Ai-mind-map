@@ -2,8 +2,8 @@
 import React, { useEffect } from 'react';
 import './App.css';
 import Canvas from './components/Canvas';
-import { useNodeOperations } from './hooks/useNodeOperations';
 import { useCanvasOperations } from './hooks/useCanvasOperations';
+import { useNode } from './context/NodeContext';
 
 function App() {
   const {
@@ -14,7 +14,7 @@ function App() {
     setEditingRect,
     addNode,
     updateNodeText
-  } = useNodeOperations();
+  } = useNode();
 
   const {
     basePosition,

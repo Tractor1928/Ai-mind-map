@@ -2,7 +2,7 @@
 import React, { createContext, useContext } from 'react';
 import { useNodeOperations } from '../hooks/useNodeOperations';
 
-const NodeContext = createContext(null);
+export const NodeContext = createContext(null);
 
 export const NodeProvider = ({ children }) => {
   const nodeOperations = useNodeOperations();
