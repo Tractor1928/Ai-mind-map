@@ -33,28 +33,54 @@ class RectNode {
     
     const maxLineWidth = this.maxWidth - (this.padding * 2);
     const lines = [];
-    let currentLine = '';
     
-    // 将文本按字符分割，而不是按空格分割
-    const chars = text.split('');
+    // 首先按自然换行符分割
+    const paragraphs = text.split('\n');
     
-    for (let char of chars) {
-      const testLine = currentLine + char;
-      const width = context.measureText(testLine).width;
+    for (let paragraph of paragraphs) {
+      if (!paragraph) {
+        lines.push('');
+        continue;
+      }
       
-      if (width < maxLineWidth) {
-        currentLine = testLine;
+      // 检测是否包含英文单词
+      const hasEnglish = /[a-zA-Z]/.test(paragraph);
+      
+      if (hasEnglish) {
+        // 英文文本按单词处理
+        const words = paragraph.split(/(\s+)/);
+        let currentLine = '';
+        
+        for (let word of words) {
+          const testLine = currentLine + word;
+          const width = context.measureText(testLine).width;
+          
+          if (width < maxLineWidth) {
+            currentLine = testLine;
+          } else {
+            if (currentLine) lines.push(currentLine.trim());
+            currentLine = word;
+          }
+        }
+        if (currentLine) lines.push(currentLine.trim());
       } else {
-        lines.push(currentLine);
-        currentLine = char;
+        // 中文文本按字符处理
+        let currentLine = '';
+        for (let char of paragraph) {
+          const testLine = currentLine + char;
+          const width = context.measureText(testLine).width;
+          
+          if (width < maxLineWidth) {
+            currentLine = testLine;
+          } else {
+            lines.push(currentLine);
+            currentLine = char;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
       }
     }
     
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-    
-    // 更新节点高度以适应文本行数
     const lineHeight = this.fontSize * 1.2;
     this.height = Math.max(100, (lines.length * lineHeight) + (this.padding * 2));
     

@@ -1,6 +1,7 @@
 // src/components/Node/index.jsx
 import React from 'react';
 import './Node.css';
+import { marked } from 'marked';
 
 const Node = ({ 
   node, 
@@ -12,6 +13,12 @@ const Node = ({
   onTextChange,
   onTextBlur 
 }) => {
+  // 配置 marked 选项
+  marked.setOptions({
+    breaks: true,
+    gfm: true
+  });
+
   const renderText = () => {
     if (isEditing) {
       return (
@@ -40,22 +47,29 @@ const Node = ({
       );
     }
 
+    // 使用 foreignObject 来渲染 Markdown
     return (
-      <text
-        x={node.x + basePosition.x + (node.width / 2)}
-        y={node.y + basePosition.y + node.padding + node.fontSize}
-        textAnchor="middle"
+      <foreignObject
+        x={node.x + basePosition.x}
+        y={node.y + basePosition.y}
+        width={node.width}
+        height={node.height}
       >
-        {node.lines.map((line, i) => (
-          <tspan
-            key={i}
-            x={node.x + basePosition.x + (node.width / 2)}
-            dy={i === 0 ? 0 : node.fontSize * 1.2}
-          >
-            {line}
-          </tspan>
-        ))}
-      </text>
+        <div
+          className="markdown-content"
+          dangerouslySetInnerHTML={{
+            __html: marked(node.text)
+          }}
+          style={{
+            padding: `${node.padding}px`,
+            fontSize: `${node.fontSize}px`,
+            fontFamily: node.fontFamily,
+            lineHeight: '1.2',
+            overflow: 'hidden',
+            wordWrap: 'break-word'
+          }}
+        />
+      </foreignObject>
     );
   };
 
