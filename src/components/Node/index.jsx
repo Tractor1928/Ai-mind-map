@@ -1,5 +1,5 @@
 // src/components/Node/index.jsx
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import './Node.css';
 import { marked } from 'marked';
 
@@ -13,6 +13,18 @@ const Node = ({
   onTextChange,
   onTextBlur 
 }) => {
+  // 添加文本区域引用
+  const textareaRef = useRef(null);
+  
+  // 添加自动调整高度的效果
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      const textarea = textareaRef.current;
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [isEditing, node.text]);
+
   // 配置 marked 选项
   marked.setOptions({
     breaks: true,
@@ -34,6 +46,7 @@ const Node = ({
           height={node.height}
         >
           <textarea
+            ref={textareaRef}
             value={node.text}
             onChange={(e) => onTextChange(node.id, e.target.value)}
             onBlur={onTextBlur}
@@ -41,18 +54,19 @@ const Node = ({
             className="node-textarea"
             style={{
               width: '100%',
-              height: '100%',
+              minHeight: '100%',
               padding: `${node.padding}px`,
               fontSize: `${node.fontSize}px`,
               fontFamily: node.fontFamily,
               lineHeight: '1.2',
+              resize: 'none',
+              overflow: 'hidden'
             }}
           />
         </foreignObject>
       );
     }
 
-    // 使用 foreignObject 来渲染 Markdown
     return (
       <foreignObject
         x={node.x + basePosition.x}
@@ -70,8 +84,8 @@ const Node = ({
             fontSize: `${node.fontSize}px`,
             fontFamily: node.fontFamily,
             lineHeight: '1.2',
-            overflow: 'hidden',
-            wordWrap: 'break-word'
+            height: '100%',
+            overflow: 'hidden'
           }}
         />
       </foreignObject>

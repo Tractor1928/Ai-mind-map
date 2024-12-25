@@ -81,7 +81,7 @@ export const useNodeOperations = () => {
         return rect;
       });
       
-      // 触发布局重新计算
+      // 触发布局更新
       setShouldUpdateLayout(true);
       return updatedRects;
     });

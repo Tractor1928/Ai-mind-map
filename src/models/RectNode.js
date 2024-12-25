@@ -21,11 +21,16 @@ class RectNode {
     this.padding = 10;
     this.fontSize = 14;
     this.fontFamily = 'Arial';
-    this.lines = this.calculateLines(text); // 初始化时就计算换行
+    
+    // 移除固定高度，改为通过计算得到
+    const dimensions = this.calculateDimensions(text);
+    this.width = dimensions.width;
+    this.height = dimensions.height;
+    this.lines = dimensions.lines;
   }
 
-  calculateLines(text) {
-    if (!text) return [''];
+  calculateDimensions(text) {
+    if (!text) return { width: 200, height: 100, lines: [''] };
     
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -82,9 +87,13 @@ class RectNode {
     }
     
     const lineHeight = this.fontSize * 1.2;
-    this.height = Math.max(100, (lines.length * lineHeight) + (this.padding * 2));
+    const textHeight = Math.max(100, (lines.length * lineHeight) + (this.padding * 2));
     
-    return lines;
+    return {
+      width: this.maxWidth,
+      height: textHeight,
+      lines: lines
+    };
   }
 
   updatePosition(x, y) {
@@ -94,7 +103,10 @@ class RectNode {
 
   updateText(text) {
     this.text = text;
-    this.lines = this.calculateLines(text);
+    const dimensions = this.calculateDimensions(text);
+    this.width = dimensions.width;
+    this.height = dimensions.height;
+    this.lines = dimensions.lines;
   }
 
   updateType(type) {
