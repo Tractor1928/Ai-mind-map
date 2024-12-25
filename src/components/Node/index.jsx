@@ -19,6 +19,11 @@ const Node = ({
     gfm: true
   });
 
+  const handleMouseDown = (e) => {
+    // 阻止事件冒泡，这样节点的点击不会触发画布的拖拽
+    e.stopPropagation();
+  };
+
   const renderText = () => {
     if (isEditing) {
       return (
@@ -74,15 +79,18 @@ const Node = ({
   };
 
   return (
-    <g>
+    <g
+      onMouseDown={handleMouseDown}
+      onClick={(e) => onNodeClick(e, node.id)}
+      onDoubleClick={(e) => onNodeDoubleClick(e, node.id)}
+      className={`node ${isSelected ? 'selected' : ''}`}
+    >
       <rect
         x={node.x + basePosition.x}
         y={node.y + basePosition.y}
         width={node.width}
         height={node.height}
         className={`rectangle ${isSelected ? 'selected' : ''} ${node.type}`}
-        onClick={(e) => onNodeClick(e, node.id)}
-        onDoubleClick={(e) => onNodeDoubleClick(e, node.id)}
       />
       {renderText()}
     </g>
