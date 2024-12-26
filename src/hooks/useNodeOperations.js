@@ -19,7 +19,10 @@ export const useNodeOperations = () => {
   }, [shouldUpdateLayout, rectangles]);
 
   const addNode = useCallback((currentRect) => {
-    const nodeType = rectangles.length % 2 === 0 ? 
+    // 如果没有当前选中的节点，说明是第一层
+    const newLevel = currentRect ? currentRect.level + 1 : 0;
+    // 根据层级决定类型：偶数层级为问题，奇数层级为答案
+    const nodeType = newLevel % 2 === 0 ? 
       NODE_TYPES.QUESTION : 
       NODE_TYPES.ANSWER;
 
@@ -33,7 +36,7 @@ export const useNodeOperations = () => {
 
     if (currentRect) {
       newNode.setParent(currentRect.id);
-      newNode.setLevel(currentRect.level + 1);
+      newNode.setLevel(newLevel);  // 设置新节点的层级
       const updatedRects = rectangles.map(rect => {
         if (rect.id === currentRect.id) {
           const updatedRect = new RectNode(
