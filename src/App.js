@@ -47,6 +47,18 @@ function App() {
   };
 
   const handleTextBlur = () => {
+    if (editingRect) {
+      const editedNode = rectangles.find(r => r.id === editingRect);
+      if (editedNode && editedNode.type === 'question') {
+        console.log('问题节点编辑完成:', editedNode.text);
+        
+        // 创建一个带有加载提示的回答节点
+        const loadingNode = addNode(editedNode, '正在思考中...', 'answer');
+        
+        // TODO: 这里将是调用 AI 的位置
+        console.log('准备调用 AI 生成回答...');
+      }
+    }
     setEditingRect(null);
   };
 

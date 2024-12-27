@@ -18,25 +18,26 @@ export const useNodeOperations = () => {
     }
   }, [shouldUpdateLayout, rectangles]);
 
-  const addNode = useCallback((currentRect) => {
+  const addNode = useCallback((currentRect, initialText = '', type = null) => {
     // 如果没有当前选中的节点，说明是第一层
     const newLevel = currentRect ? currentRect.level + 1 : 0;
-    // 根据层级决定类型：偶数层级为问题，奇数层级为答案
-    const nodeType = newLevel % 2 === 0 ? 
+    
+    // 如果没有指定类型，则根据层级决定类型
+    const nodeType = type || (newLevel % 2 === 0 ? 
       NODE_TYPES.QUESTION : 
-      NODE_TYPES.ANSWER;
+      NODE_TYPES.ANSWER);
 
     const newNode = new RectNode(
       Date.now(),
       0,
       0,
-      '',
+      initialText,
       nodeType
     );
 
     if (currentRect) {
       newNode.setParent(currentRect.id);
-      newNode.setLevel(newLevel);  // 设置新节点的层级
+      newNode.setLevel(newLevel);
       const updatedRects = rectangles.map(rect => {
         if (rect.id === currentRect.id) {
           const updatedRect = new RectNode(
@@ -62,6 +63,8 @@ export const useNodeOperations = () => {
     setSelectedRect(newNode.id);
     setEditingRect(newNode.id);
     setShouldUpdateLayout(true);
+    
+    return newNode;
   }, [rectangles]);
 
   const updateNodeText = useCallback((id, text) => {
