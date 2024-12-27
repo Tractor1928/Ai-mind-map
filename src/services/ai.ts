@@ -1,29 +1,55 @@
-import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 export class AIService {
-  private client: OpenAI;
+  private baseURL: string;
 
   constructor() {
-    this.client = new OpenAI({
-      apiKey: process.env.REACT_APP_ARK_API_KEY,
-      baseURL: process.env.REACT_APP_API_BASE_URL,
-    });
+    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
   }
 
   async generateResponse(messages: ChatCompletionMessageParam[], onContent?: (content: string) => void) {
     try {
-      const stream = await this.client.chat.completions.create({
-        messages,
-        model: 'ep-20241226145851-qrc5d',
-        stream: true,
+      const response = await fetch(`${this.baseURL}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages }),
       });
 
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
       let fullResponse = '';
-      for await (const part of stream) {
-        const content = part.choices[0]?.delta?.content || '';
-        fullResponse += content;
-        onContent?.(content);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(5);
+            if (data === '[DONE]') break;
+
+            try {
+              const { content } = JSON.parse(data);
+              if (content) {
+                fullResponse += content;
+                onContent?.(content);
+              }
+            } catch (e) {
+              console.warn('Failed to parse SSE data:', e);
+            }
+          }
+        }
       }
 
       return fullResponse;

@@ -4,6 +4,7 @@ import './App.css';
 import VirtualCanvas from './features/canvas/components/VirtualCanvas';
 import { useNode } from './features/nodes/context/NodeContext';
 import { useZoom } from './features/canvas/hooks/useZoom';
+import AITest from './components/AITest';
 
 function App() {
   const {
@@ -78,29 +79,19 @@ function App() {
   }, []);
 
   return (
-    <div className="App" onWheel={handleZoom}>
-      <svg 
+    <div className="App">
+      <AITest />
+      {/* 暂时注释掉其他内容
+      <div 
         className={`canvas ${isDragging ? 'dragging' : ''}`}
+        onWheel={handleZoom}
         onMouseDown={handleDragStart}
+        onMouseUp={handleDragEnd}
+        onClick={handleCanvasClick}
       >
-        <g transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}>
-          <VirtualCanvas
-            nodes={rectangles}
-            links={rectangles.filter(r => r.parentId).map(r => ({
-              source: rectangles.find(n => n.id === r.parentId),
-              target: r
-            }))}
-            viewport={viewport}
-            scale={transform.scale}
-            selectedRect={selectedRect}
-            editingRect={editingRect}
-            onNodeClick={handleRectClick}
-            onNodeDoubleClick={handleRectDoubleClick}
-            onTextChange={updateNodeText}
-            onTextBlur={handleTextBlur}
-          />
-        </g>
-      </svg>
+        ...
+      </div>
+      */}
     </div>
   );
 }
