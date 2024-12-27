@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import VirtualCanvas from './features/canvas/components/VirtualCanvas';
@@ -80,18 +79,36 @@ function App() {
 
   return (
     <div className="App">
-      <AITest />
-      {/* 暂时注释掉其他内容
-      <div 
-        className={`canvas ${isDragging ? 'dragging' : ''}`}
-        onWheel={handleZoom}
-        onMouseDown={handleDragStart}
-        onMouseUp={handleDragEnd}
-        onClick={handleCanvasClick}
-      >
-        ...
+      <div className="split-layout">
+        <div className="mindmap-container">
+          <svg 
+            className={`canvas ${isDragging ? 'dragging' : ''}`}
+            onMouseDown={handleDragStart}
+            onWheel={handleZoom}
+          >
+            <g transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}>
+              <VirtualCanvas
+                nodes={rectangles}
+                links={rectangles.filter(r => r.parentId).map(r => ({
+                  source: rectangles.find(n => n.id === r.parentId),
+                  target: r
+                }))}
+                viewport={viewport}
+                scale={transform.scale}
+                selectedRect={selectedRect}
+                editingRect={editingRect}
+                onNodeClick={handleRectClick}
+                onNodeDoubleClick={handleRectDoubleClick}
+                onTextChange={updateNodeText}
+                onTextBlur={handleTextBlur}
+              />
+            </g>
+          </svg>
+        </div>
+        <div className="ai-container">
+          <AITest />
+        </div>
       </div>
-      */}
     </div>
   );
 }
