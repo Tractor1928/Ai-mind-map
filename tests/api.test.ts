@@ -1,6 +1,31 @@
 import { OpenAI } from 'openai';
 import { testMessages } from './fixtures/messages';
 
+// 重试函数
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  delay = 2000
+): Promise<T> {
+  let lastError;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      if (error?.status === 429) {
+        console.warn(`Rate limit hit, attempt ${i + 1}/${maxRetries}, waiting ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        // 每次重试增加延迟
+        delay *= 1.5;
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
+}
+
 describe('API Integration Tests', () => {
   let openai: OpenAI;
 
@@ -11,11 +36,6 @@ describe('API Integration Tests', () => {
     });
   });
 
-  // 在每个测试之间添加延迟
-  afterEach(async () => {
-    await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒延迟
-  });
-
   // 基础连接测试
   test('should initialize OpenAI client', () => {
     expect(openai).toBeDefined();
@@ -24,22 +44,33 @@ describe('API Integration Tests', () => {
 
   // 基础消息发送测试
   test('should send message and receive response', async () => {
-    try {
-      const completion = await openai.chat.completions.create({
+    const completion = await withRetry(async () => {
+      return await openai.chat.completions.create({
         messages: testMessages.basic,
         model: 'ep-20241226145851-qrc5d',
       });
+    });
 
-      expect(completion.choices[0]?.message?.content).toBeDefined();
-      expect(typeof completion.choices[0]?.message?.content).toBe('string');
-    } catch (error: any) {
-      if (error?.status === 429) {
-        console.warn('Rate limit exceeded, skipping test');
-        return;
-      }
-      throw error;
-    }
-  }, 10000); // 增加超时时间
+    expect(completion.choices[0]?.message?.content).toBeDefined();
+    expect(typeof completion.choices[0]?.message?.content).toBe('string');
+  }, 20000); // 增加超时时间
+
+  // 测试长文本场景
+  test('should handle long text input', async () => {
+    const longText = '请帮我总结以下内容的要点，并制作成思维导图：' + '测试内容'.repeat(50);
+    
+    const completion = await withRetry(async () => {
+      return await openai.chat.completions.create({
+        messages: [
+          { role: 'system', content: '你是一个擅长制作思维导图的AI助手' },
+          { role: 'user', content: longText }
+        ],
+        model: 'ep-20241226145851-qrc5d',
+      });
+    });
+
+    expect(completion.choices[0]?.message?.content).toBeDefined();
+  }, 30000);
 
   // 流式响应测试
   test('should handle streaming response', async () => {
