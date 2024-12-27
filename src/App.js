@@ -58,18 +58,20 @@ function App() {
         // 创建一个带有加载提示的回答节点
         const answerNode = addNode(editedNode, '正在思考中...', 'answer');
         
-        // 调用 AI 生成回答
         try {
           const messages = [
             { role: 'system', content: '你是一个AI助手，请简洁清晰地回答问题' },
             { role: 'user', content: editedNode.text }
           ];
           
-          const response = await generateResponse(messages);
-          if (response) {
-            // 更新回答节点的内容
-            updateNodeText(answerNode.id, response);
-          }
+          // 添加流式响应处理
+          let currentResponse = '';
+          const onProgress = (content) => {
+            currentResponse += content;
+            updateNodeText(answerNode.id, currentResponse);
+          };
+          
+          await generateResponse(messages, onProgress);
         } catch (error) {
           console.error('AI 回答生成失败:', error);
           updateNodeText(answerNode.id, '抱歉，回答生成失败');
