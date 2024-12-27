@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
 import { useAI } from '../hooks/useAI';
+import { transformChatToNodes } from '../features/ai/transformers/chatToNodes';
 import LoadingSpinner from './LoadingSpinner';
 
 const AITest: React.FC = () => {
   const { generateResponse, isLoading, error } = useAI();
   const [input, setInput] = useState('');
-  const [response, setResponse] = useState('');
+  const [nodes, setNodes] = useState<any[]>([]);
   const [streamingResponse, setStreamingResponse] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setResponse('');
     setStreamingResponse('');
 
     const messages = [
       { 
         role: 'system' as const, 
-        content: '你是一个AI助手' 
+        content: '你是一个AI助手，请简洁清晰地回答问题' 
       },
       { 
         role: 'user' as const, 
@@ -31,13 +31,15 @@ const AITest: React.FC = () => {
 
     const result = await generateResponse(messages, onProgress);
     if (result) {
-      setResponse(result);
+      // 转换对话为节点
+      const newNodes = transformChatToNodes(input, result);
+      setNodes(prevNodes => [...prevNodes, ...newNodes]);
     }
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-      <h2>AI 测试</h2>
+    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+      <h2>AI 思维导图测试</h2>
       
       <form onSubmit={handleSubmit}>
         <textarea
@@ -79,6 +81,21 @@ const AITest: React.FC = () => {
         </div>
       )}
 
+      {/* 显示生成的节点 */}
+      <div style={{ marginTop: '20px' }}>
+        <h3>生成的节点:</h3>
+        <pre style={{ 
+          whiteSpace: 'pre-wrap',
+          backgroundColor: '#f5f5f5',
+          padding: '15px',
+          borderRadius: '4px',
+          border: '1px solid #ddd'
+        }}>
+          {JSON.stringify(nodes, null, 2)}
+        </pre>
+      </div>
+
+      {/* 显示实时响应 */}
       {streamingResponse && (
         <div style={{ marginTop: '20px' }}>
           <h3>实时响应:</h3>
