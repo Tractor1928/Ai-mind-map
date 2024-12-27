@@ -1,11 +1,9 @@
 // src/App.js
 import React, { useEffect, useMemo, useState } from 'react';
 import './App.css';
-import Canvas from './components/Canvas';
-import { useCanvasOperations } from './hooks/useCanvasOperations';
-import { useNode } from './context/NodeContext';
-import { useZoom } from './hooks/useZoom';
-import VirtualCanvas from './components/VirtualCanvas';
+import VirtualCanvas from './features/canvas/components/VirtualCanvas';
+import { useNode } from './features/nodes/context/NodeContext';
+import { useZoom } from './features/canvas/hooks/useZoom';
 
 function App() {
   const {

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import Node from '../Node';
+import Node from '../../../nodes/components/Node';
 import Connection from '../Connection';
 import { isNodeVisible } from '../../utils/viewport';
 

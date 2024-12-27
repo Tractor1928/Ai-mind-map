@@ -1,7 +1,7 @@
 // src/hooks/useNodeOperations.js
 import { useState, useEffect, useCallback } from 'react';
 import { RectNode, NODE_TYPES } from '../models/RectNode';
-import { calculateTreeLayout } from '../utils/d3TreeLayout';
+import { calculateTreeLayout } from '../../layout/utils/treeLayout';
 
 export const useNodeOperations = () => {
   const [rectangles, setRectangles] = useState([]);
