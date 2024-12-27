@@ -4,7 +4,6 @@ import VirtualCanvas from './features/canvas/components/VirtualCanvas';
 import { useNode } from './features/nodes/context/NodeContext';
 import { useZoom } from './features/canvas/hooks/useZoom';
 import { useAI } from './hooks/useAI';
-import AITest from './components/AITest';
 
 function App() {
   const {
@@ -55,7 +54,7 @@ function App() {
       if (editedNode && editedNode.type === 'question') {
         console.log('问题节点编辑完成:', editedNode.text);
         
-        // 创建一个带有加载提示的回答节点
+        // 创建一个带有���载提示的回答节点
         const answerNode = addNode(editedNode, '正在思考中...', 'answer');
         
         try {
@@ -135,9 +134,6 @@ function App() {
               />
             </g>
           </svg>
-        </div>
-        <div className="ai-container">
-          <AITest />
         </div>
       </div>
     </div>

@@ -14,15 +14,7 @@
 .mindmap-container {
   flex: 1;
   height: 100%;
-  min-width: 0; /* 防止 flex 子项溢出 */
-}
-
-.ai-container {
-  width: 400px;
-  height: 100%;
-  border-left: 1px solid #ddd;
-  overflow-y: auto;
-  background: white;
+  min-width: 0;
 }
 
 .canvas {
