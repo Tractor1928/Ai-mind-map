@@ -3,6 +3,7 @@ import './App.css';
 import VirtualCanvas from './features/canvas/components/VirtualCanvas';
 import { useNode } from './features/nodes/context/NodeContext';
 import { useZoom } from './features/canvas/hooks/useZoom';
+import { useAI } from './hooks/useAI';
 import AITest from './components/AITest';
 
 function App() {
@@ -32,6 +33,8 @@ function App() {
 
   const [isDragging, setIsDragging] = useState(false);
 
+  const { generateResponse } = useAI();
+
   const handleRectClick = (e, id) => {
     e.stopPropagation();
     setSelectedRect(id);
@@ -46,17 +49,31 @@ function App() {
     setEditingRect(id);
   };
 
-  const handleTextBlur = () => {
+  const handleTextBlur = async () => {
     if (editingRect) {
       const editedNode = rectangles.find(r => r.id === editingRect);
       if (editedNode && editedNode.type === 'question') {
         console.log('问题节点编辑完成:', editedNode.text);
         
         // 创建一个带有加载提示的回答节点
-        const loadingNode = addNode(editedNode, '正在思考中...', 'answer');
+        const answerNode = addNode(editedNode, '正在思考中...', 'answer');
         
-        // TODO: 这里将是调用 AI 的位置
-        console.log('准备调用 AI 生成回答...');
+        // 调用 AI 生成回答
+        try {
+          const messages = [
+            { role: 'system', content: '你是一个AI助手，请简洁清晰地回答问题' },
+            { role: 'user', content: editedNode.text }
+          ];
+          
+          const response = await generateResponse(messages);
+          if (response) {
+            // 更新回答节点的内容
+            updateNodeText(answerNode.id, response);
+          }
+        } catch (error) {
+          console.error('AI 回答生成失败:', error);
+          updateNodeText(answerNode.id, '抱歉，回答生成失败');
+        }
       }
     }
     setEditingRect(null);
