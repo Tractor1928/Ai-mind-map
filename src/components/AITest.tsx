@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAI } from '../hooks/useAI';
+import LoadingSpinner from './LoadingSpinner';
 
 const AITest: React.FC = () => {
   const { generateResponse, isLoading, error } = useAI();
@@ -55,15 +56,25 @@ const AITest: React.FC = () => {
           disabled={isLoading || !input.trim()}
           style={{
             padding: '8px 16px',
-            marginBottom: '20px'
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
           }}
         >
+          {isLoading && <LoadingSpinner />}
           {isLoading ? '生成中...' : '发送'}
         </button>
       </form>
 
       {error && (
-        <div style={{ color: 'red', marginBottom: '10px' }}>
+        <div style={{ 
+          color: 'red', 
+          marginBottom: '10px',
+          padding: '10px',
+          backgroundColor: '#ffebee',
+          borderRadius: '4px'
+        }}>
           错误: {error}
         </div>
       )}
@@ -74,8 +85,9 @@ const AITest: React.FC = () => {
           <pre style={{ 
             whiteSpace: 'pre-wrap',
             backgroundColor: '#f5f5f5',
-            padding: '10px',
-            borderRadius: '4px'
+            padding: '15px',
+            borderRadius: '4px',
+            border: '1px solid #ddd'
           }}>
             {streamingResponse}
           </pre>
