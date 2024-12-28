@@ -54,7 +54,7 @@ function App() {
       if (editedNode && editedNode.type === 'question') {
         console.log('问题节点编辑完成:', editedNode.text);
         
-        // 创建一个带有���载提示的回答节点
+        // 创建一个带有载提示的回答节点
         const answerNode = addNode(editedNode, '正在思考中...', 'answer');
         
         try {
@@ -90,17 +90,34 @@ function App() {
   };
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = async (e) => {
       if (e.key === 'Tab') {
         e.preventDefault();
+        
+        // 如果没有选中节点且画布为空，创建第一个问题节点
+        if (!selectedRect && rectangles.length === 0) {
+          const firstNode = addNode(null, '', 'question');
+          setEditingRect(firstNode.id);
+          return;
+        }
+        
+        // 如果选中的是问题节点，不做任何操作
         const currentRect = rectangles.find(r => r.id === selectedRect);
-        addNode(currentRect);
+        if (currentRect?.type === 'question') {
+          return;
+        }
+        
+        // 如果选中的是回答节点，创建新的问题节点
+        if (currentRect?.type === 'answer') {
+          const newQuestionNode = addNode(currentRect, '', 'question');
+          setEditingRect(newQuestionNode.id);
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [rectangles, selectedRect, addNode]);
+  }, [rectangles, selectedRect, addNode, setEditingRect]);
 
   useEffect(() => {
     document.addEventListener('mouseup', handleDragEnd);
