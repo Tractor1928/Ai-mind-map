@@ -40,11 +40,32 @@
   padding: 0;
   max-width: 100%;
   box-sizing: border-box;
+  line-height: 1.2;
 }
 
-.markdown-content p {
+.markdown-content ol,
+.markdown-content ul {
+  padding-left: 1.2em;
+  list-style-position: outside;
+}
+
+.markdown-content li {
+  display: list-item;
+  list-style: decimal;
+}
+
+.markdown-content li p {
+  display: inline;
+}
+
+.markdown-content p,
+.markdown-content li p {
+  margin: 0;
+  padding: 0;
+}
+
+.markdown-content > p {
   margin-bottom: 0.2em;
-  line-height: 1.2;
 }
 
 .markdown-content p:last-child {
@@ -66,11 +87,6 @@
   padding: 8px;
   border-radius: 4px;
   overflow-x: auto;
-}
-
-.markdown-content ul, 
-.markdown-content ol {
-  padding-left: 20px;
 }
 
 .markdown-content pre,

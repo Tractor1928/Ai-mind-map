@@ -84,8 +84,6 @@ const Node = ({
             fontSize: `${node.fontSize}px`,
             fontFamily: node.fontFamily,
             lineHeight: '1.2',
-            height: '100%',
-            overflow: 'hidden'
           }}
         />
       </foreignObject>
