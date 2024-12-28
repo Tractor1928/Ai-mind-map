@@ -37,7 +37,8 @@ const Node = ({
   };
 
   const renderText = () => {
-    if (isEditing) {
+    // 只有问题节点且处于编辑状态时才显示文本框
+    if (isEditing && node.type === 'question') {
       return (
         <foreignObject
           x={node.x + basePosition.x}

@@ -45,7 +45,11 @@ function App() {
 
   const handleRectDoubleClick = (e, id) => {
     e.stopPropagation();
-    setEditingRect(id);
+    // 检查是否是问题节点
+    const node = rectangles.find(r => r.id === id);
+    if (node?.type === 'question') {
+      setEditingRect(id);
+    }
   };
 
   const handleTextBlur = async () => {
