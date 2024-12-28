@@ -56,6 +56,12 @@ function App() {
     if (editingRect) {
       const editedNode = rectangles.find(r => r.id === editingRect);
       if (editedNode && editedNode.type === 'question') {
+        // 检查问题节点是否有内容
+        if (!editedNode.text.trim()) {
+          setEditingRect(null);
+          return;
+        }
+        
         console.log('问题节点编辑完成:', editedNode.text);
         
         // 创建一个带有载提示的回答节点
