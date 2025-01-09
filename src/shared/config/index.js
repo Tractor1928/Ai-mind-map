@@ -7,7 +7,7 @@ export const CANVAS_CONFIG = {
   },
   layout: {
     horizontalSpacing: 700,
-    verticalSpacing: 80
+    verticalSpacing: 300
   },
   zoom: {
     min: 0.1,
