@@ -22,7 +22,7 @@ npm install
 
 ### 运行
 启动后端服务:
-npm run serve:dev
+npm run server:dev
 
 启动前端开发服务器:
 npm start
