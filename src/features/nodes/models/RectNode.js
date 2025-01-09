@@ -15,8 +15,8 @@ class RectNode {
     this.parentId = null;    // 添加父节点ID
     this.childrenIds = [];   // 添加子节点ID数组
     this.level = 0;  // 添加层级属性
-    this.maxWidth = 200;    // 添加最大宽度限制
-    this.width = 200;    
+    this.maxWidth = 600;    // 从200改为600
+    this.width = 600;       // 从200改为600
     this.height = 100;   
     this.padding = 10;
     this.fontSize = 14;
@@ -30,7 +30,7 @@ class RectNode {
   }
 
   calculateDimensions(text) {
-    if (!text) return { width: 200, height: 100, lines: [''] };
+    if (!text) return { width: 600, height: 100, lines: [''] };
     
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -175,9 +175,9 @@ class RectNode {
     const textWidth = Math.max(...widths);
     const textHeight = lineHeight * lines.length;
     
-    // 添加内边距
-    this.width = Math.max(textWidth + (this.padding * 2), 200); // 最小宽度 200px
-    this.height = Math.max(textHeight + (this.padding * 2), 100); // 最小高度 100px
+    // 修改最小宽度为600px
+    this.width = Math.max(textWidth + (this.padding * 2), 600);
+    this.height = Math.max(textHeight + (this.padding * 2), 100);
   }
 }
 

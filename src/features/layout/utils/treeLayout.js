@@ -21,7 +21,7 @@ export const calculateTreeLayout = (nodes) => {
 
   // 创建树形布局
   const treeLayout = d3.tree()
-    .nodeSize([120, 250]); // [垂直间距, 水平间距]
+    .nodeSize([120, 700]); // 水平间距增加到700以适应600px宽度的节点
 
   // 计算布局
   treeLayout(root);

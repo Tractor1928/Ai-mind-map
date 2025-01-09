@@ -1,12 +1,12 @@
 export const CANVAS_CONFIG = {
   node: {
-    defaultWidth: 200,
+    defaultWidth: 600,
     defaultHeight: 100,
     padding: 10,
     fontSize: 14
   },
   layout: {
-    horizontalSpacing: 250,
+    horizontalSpacing: 700,
     verticalSpacing: 80
   },
   zoom: {

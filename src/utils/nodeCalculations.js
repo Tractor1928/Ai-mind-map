@@ -4,7 +4,7 @@ export const calculateNodePosition = (node, parentNode, siblings) => {
       return { x: 50, y: 50 };
     }
   
-    const horizontalSpacing = 250;
+    const horizontalSpacing = 700;
     const verticalSpacing = 80;
     
     const x = 50 + (node.level * horizontalSpacing);
