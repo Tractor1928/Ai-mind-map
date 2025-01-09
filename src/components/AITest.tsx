@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAI } from '../hooks/useAI';
 import { transformChatToNodes } from '../features/ai/transformers/chatToNodes';
 import LoadingSpinner from './LoadingSpinner';
+import { AI_PROMPTS } from '../config/prompts';
 
 const AITest: React.FC = () => {
   const { generateResponse, isLoading, error } = useAI();
@@ -16,7 +17,7 @@ const AITest: React.FC = () => {
     const messages = [
       { 
         role: 'system' as const, 
-        content: '你是一个AI助手，请简洁清晰地回答问题' 
+        content: AI_PROMPTS.system
       },
       { 
         role: 'user' as const, 
