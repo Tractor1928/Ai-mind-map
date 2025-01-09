@@ -163,6 +163,9 @@ function App() {
           </svg>
         </div>
       </div>
+      <div className="hint-text">
+        Press Tab and feel free to ask
+      </div>
     </div>
   );
 }
