@@ -1,70 +1,76 @@
-# Getting Started with Create React App
+# 沙锅导图
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+一个基于React的智能思维导图应用,支持自然对话式创建和编辑思维导图,集成AI助手实现智能问答。
 
-## Available Scripts
+## 主要特性
 
-In the project directory, you can run:
+- 🤖 AI智能问答
+- 📝 自然对话式编辑
+- 🎯 直观的思维导图展示
+- 🖱️ 支持缩放和拖拽
+- ✨ 流畅的动画效果
+- 📱 响应式布局
 
-### `npm start`
+## 快速开始
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 环境要求
+- Node.js >= 14.0.0
+- npm >= 6.14.0
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 安装
+npm install
 
-### `npm test`
+### 运行
+启动后端服务:
+npm run serve:dev
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+启动前端开发服务器:
+npm start
 
-### `npm run build`
+### 开发环境配置(可选)
+1. 复制 `.env.example` 为 `.env`
+2. 配置必要的环境变量:
+REACT_APP_API_URL=http://localhost:3001
+ARK_API_KEY=your_api_key
+API_BASE_URL=your_base_url
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 项目结构
+src/
+├── components/ # 通用组件
+├── features/ # 功能模块
+│ ├── ai/ # AI 相关功能
+│ ├── canvas/ # 画布功能
+│ ├── nodes/ # 节点功能
+│ └── layout/ # 布局功能
+├── services/ # API 服务
+├── hooks/ # 自定义 Hooks
+└── shared/ # 共享工具和配置
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 技术栈
+- React 18
+- TypeScript
+- D3.js - 布局算法
+- Express - 后端服务
+- OpenAI API - AI能力支持
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 使用说明
 
-### `npm run eject`
+1. 创建节点
+- 按 Tab 键创建新的问题节点
+- 双击节点编辑内容
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. 操作画布
+- 鼠标拖拽移动画布
+- 滚轮缩放画布
+- 点击节点选中
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+3. AI 问答
+- 编辑问题节点触发 AI 回答
+- 支持流式响应显示
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 开发指南
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### 代码规范
+- 使用 ESLint 和 Prettier 进行代码格式化
+- 遵循 TypeScript 类型定义
+- 组件采用函数式编程
