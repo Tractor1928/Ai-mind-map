@@ -48,11 +48,9 @@ class RectNode {
         continue;
       }
       
-      // 检测是否包含英文单词
       const hasEnglish = /[a-zA-Z]/.test(paragraph);
       
       if (hasEnglish) {
-        // 英文文本按单词处理
         const words = paragraph.split(/(\s+)/);
         let currentLine = '';
         
@@ -69,7 +67,6 @@ class RectNode {
         }
         if (currentLine) lines.push(currentLine.trim());
       } else {
-        // 中文文本按字符处理
         let currentLine = '';
         for (let char of paragraph) {
           const testLine = currentLine + char;
@@ -85,8 +82,9 @@ class RectNode {
         if (currentLine) lines.push(currentLine);
       }
     }
-    
-    const lineHeight = this.fontSize * 1.2;
+
+    // 增加行高和额外缓冲区
+    const lineHeight = this.fontSize * 1.3; // 从1.2增加到1.5
     const textHeight = Math.max(100, (lines.length * lineHeight) + (this.padding * 2));
     
     return {
