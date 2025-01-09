@@ -83,8 +83,8 @@ class RectNode {
       }
     }
 
-    // 增加行高和额外缓冲区
-    const lineHeight = this.fontSize * 1.3; // 从1.2增加到1.5
+    // 增加行高
+    const lineHeight = this.fontSize * 1.3; 
     const textHeight = Math.max(100, (lines.length * lineHeight) + (this.padding * 2));
     
     return {
