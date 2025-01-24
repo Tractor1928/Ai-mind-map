@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import './App.css';
 import VirtualCanvas from './features/canvas/components/VirtualCanvas';
 import { useNode } from './features/nodes/context/NodeContext';
@@ -23,7 +23,8 @@ function App() {
     transform,
     handleZoom,
     handlePan,
-    handleDragStart: handleZoomDragStart
+    handleDragStart: handleZoomDragStart,
+    setTransform
   } = useZoom(window.innerWidth, window.innerHeight);
 
   const viewport = useMemo(() => ({
@@ -40,6 +41,7 @@ function App() {
   const handleRectClick = (e, id) => {
     e.stopPropagation();
     setSelectedRect(id);
+    centerNode(id);
   };
 
   const handleCanvasClick = () => {
@@ -153,8 +155,51 @@ function App() {
     if (nextNode) {
       e.preventDefault();
       setSelectedRect(nextNode.id);
+      centerNode(nextNode.id);
     }
   };
+
+  const centerNode = useCallback((nodeId) => {
+    const node = rectangles.find(r => r.id === nodeId);
+    if (!node) return;
+    
+    // 计算节点中心点
+    const nodeCenterX = node.x + node.width / 2;
+    const nodeCenterY = node.y + node.height / 2;
+    
+    // 计算需要的平移量，使节点居中
+    const targetX = window.innerWidth / 2 - nodeCenterX * transform.scale;
+    const targetY = window.innerHeight / 2 - nodeCenterY * transform.scale;
+    
+    // 使用动画平滑过渡到目标位置
+    const startX = transform.x;
+    const startY = transform.y;
+    const startTime = performance.now();
+    const duration = 300; // 动画持续时间(毫秒)
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // 使用 easeOutCubic 缓动函数使动画更自然
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      
+      const newX = startX + (targetX - startX) * easeProgress;
+      const newY = startY + (targetY - startY) * easeProgress;
+      
+      setTransform(prev => ({
+        ...prev,
+        x: newX,
+        y: newY
+      }));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [rectangles, transform.scale, transform.x, transform.y, setTransform]);
 
   useEffect(() => {
     const handleKeyDown = async (e) => {

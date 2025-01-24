@@ -22,6 +22,14 @@ export const useZoom = (initialWidth, initialHeight) => {
     }));
   }, [transform.scale]);
 
+  const handlePan = useCallback((dx, dy) => {
+    setTransform(prev => ({
+      ...prev,
+      x: prev.x + dx,
+      y: prev.y + dy
+    }));
+  }, []);
+
   // 添加拖拽功能
   const handleDragStart = useCallback((e) => {
     const startX = e.clientX - transform.x;
@@ -46,7 +54,9 @@ export const useZoom = (initialWidth, initialHeight) => {
 
   return {
     transform,
+    setTransform,
     handleZoom,
+    handlePan,
     handleDragStart
   };
 }; 

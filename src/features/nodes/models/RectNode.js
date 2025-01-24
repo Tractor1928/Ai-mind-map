@@ -96,8 +96,10 @@ class RectNode {
   }
 
   updateText(text) {
-    this.text = text;
-    const dimensions = this.calculateDimensions(text);
+    // 处理连续换行符
+    const normalizedText = text.replace(/\n{2,}/g, '\n');
+    this.text = normalizedText;
+    const dimensions = this.calculateDimensions(normalizedText);
     this.width = dimensions.width;
     this.height = dimensions.height;
     this.lines = dimensions.lines;
