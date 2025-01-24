@@ -36,6 +36,14 @@ const Node = ({
     e.stopPropagation();
   };
 
+  // 新增处理键盘事件的函数
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onTextBlur();
+    }
+  };
+
   const renderText = () => {
     // 只有问题节点且处于编辑状态时才显示文本框
     if (isEditing && node.type === 'question') {
@@ -51,6 +59,7 @@ const Node = ({
             value={node.text}
             onChange={(e) => onTextChange(node.id, e.target.value)}
             onBlur={onTextBlur}
+            onKeyDown={handleKeyDown}
             autoFocus
             className="node-textarea"
             style={{
