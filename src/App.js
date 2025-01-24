@@ -4,6 +4,8 @@ import VirtualCanvas from './features/canvas/components/VirtualCanvas';
 import { useNode } from './features/nodes/context/NodeContext';
 import { useZoom } from './features/canvas/hooks/useZoom';
 import { useAI } from './hooks/useAI';
+import { buildContextPrompt } from './features/ai/utils/contextPrompt';
+import { AI_PROMPTS } from './config/prompts';
 
 function App() {
   const {
@@ -57,24 +59,25 @@ function App() {
     if (editingRect) {
       const editedNode = rectangles.find(r => r.id === editingRect);
       if (editedNode && editedNode.type === 'question') {
-        // 检查问题节点是否有内容
         if (!editedNode.text.trim()) {
           setEditingRect(null);
           return;
         }
         
-        console.log('问题节点编辑完成:', editedNode.text);
+        // 获取上下文提示词
+        const contextPrompt = buildContextPrompt(editedNode, rectangles);
         
-        // 创建一个带有载提示的回答节点
+        // 创建带有加载提示的回答节点
         const answerNode = addNode(editedNode, '正在思考中...', 'answer');
         
         try {
           const messages = [
-            { role: 'system', content: '你是一个AI助手，请简洁清晰地回答问题' },
+            { role: 'system', content: AI_PROMPTS.system },
+            // 如果有上下文，添加上下文提示
+            ...(contextPrompt ? [{ role: 'system', content: contextPrompt }] : []),
             { role: 'user', content: editedNode.text }
           ];
           
-          // 添加流式响应处理
           let currentResponse = '';
           const onProgress = (content) => {
             currentResponse += content;
