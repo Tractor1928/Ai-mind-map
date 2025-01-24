@@ -93,6 +93,54 @@ export const useNodeOperations = () => {
     });
   }, []);
 
+  const deleteNode = useCallback((id) => {
+    setRectangles(prev => {
+      // 找到要删除的节点及其所有子节点
+      const nodeToDelete = prev.find(r => r.id === id);
+      if (!nodeToDelete) return prev;
+      
+      // 获取所有需要删除的节点ID(包括子节点)
+      const idsToDelete = new Set([id]);
+      const getChildrenIds = (nodeId) => {
+        const node = prev.find(r => r.id === nodeId);
+        if (node && node.childrenIds.length > 0) {
+          node.childrenIds.forEach(childId => {
+            idsToDelete.add(childId);
+            getChildrenIds(childId);
+          });
+        }
+      };
+      getChildrenIds(id);
+      
+      // 更新父节点的 childrenIds
+      const updatedRects = prev.map(rect => {
+        if (rect.id === nodeToDelete.parentId) {
+          const updatedRect = new RectNode(
+            rect.id,
+            rect.x,
+            rect.y,
+            rect.text,
+            rect.type
+          );
+          updatedRect.parentId = rect.parentId;
+          updatedRect.childrenIds = rect.childrenIds.filter(cid => cid !== id);
+          updatedRect.level = rect.level;
+          return updatedRect;
+        }
+        return rect;
+      });
+      
+      // 过滤掉要删除的节点
+      const filteredRects = updatedRects.filter(r => !idsToDelete.has(r.id));
+      
+      setShouldUpdateLayout(true);
+      return filteredRects;
+    });
+    
+    setSelectedRect(null);
+    setEditingRect(null);
+  }, []);
+
   return {
     rectangles,
     selectedRect,
@@ -100,6 +148,7 @@ export const useNodeOperations = () => {
     setSelectedRect,
     setEditingRect,
     addNode,
-    updateNodeText
+    updateNodeText,
+    deleteNode
   };
 };

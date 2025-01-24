@@ -13,7 +13,8 @@ function App() {
     setSelectedRect,
     setEditingRect,
     addNode,
-    updateNodeText
+    updateNodeText,
+    deleteNode
   } = useNode();
 
   const {
@@ -122,12 +123,20 @@ function App() {
           const newQuestionNode = addNode(currentRect, '', 'question');
           setEditingRect(newQuestionNode.id);
         }
+      } else if (e.key === 'Delete') {
+        e.preventDefault();
+        
+        // 如果有选中的节点且是问题节点,则删除
+        const currentRect = rectangles.find(r => r.id === selectedRect);
+        if (currentRect?.type === 'question') {
+          deleteNode(currentRect.id);
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [rectangles, selectedRect, addNode, setEditingRect]);
+  }, [rectangles, selectedRect, addNode, setEditingRect, deleteNode]);
 
   useEffect(() => {
     document.addEventListener('mouseup', handleDragEnd);
