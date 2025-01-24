@@ -39,15 +39,12 @@ class RectNode {
     const maxLineWidth = this.maxWidth - (this.padding * 2);
     const lines = [];
     
-    // 首先按自然换行符分割
-    const paragraphs = text.split('\n');
+    // 移除所有换行符,将文本合并为一个段落
+    const paragraph = text.replace(/\n+/g, ' ').trim();
     
-    for (let paragraph of paragraphs) {
-      if (!paragraph) {
-        lines.push('');
-        continue;
-      }
-      
+    if (!paragraph) {
+      lines.push('');
+    } else {
       const hasEnglish = /[a-zA-Z]/.test(paragraph);
       
       if (hasEnglish) {
@@ -83,8 +80,7 @@ class RectNode {
       }
     }
 
-    // 增加行高
-    const lineHeight = this.fontSize * 1.3; 
+    const lineHeight = this.fontSize * 1.3;
     const textHeight = Math.max(100, (lines.length * lineHeight) + (this.padding * 2));
     
     return {

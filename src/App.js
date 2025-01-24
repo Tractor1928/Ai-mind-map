@@ -103,8 +103,67 @@ function App() {
     setIsDragging(false);
   };
 
+  const handleArrowKeys = (e) => {
+    if (!selectedRect || !rectangles.length) return;
+
+    const currentNode = rectangles.find(r => r.id === selectedRect);
+    if (!currentNode) return;
+
+    let nextNode = null;
+
+    switch (e.key) {
+      case 'ArrowRight':
+        // 移动到子节点
+        if (currentNode.childrenIds.length > 0) {
+          nextNode = rectangles.find(r => r.id === currentNode.childrenIds[0]);
+        }
+        break;
+      case 'ArrowLeft':
+        // 移动到父节点
+        if (currentNode.parentId) {
+          nextNode = rectangles.find(r => r.id === currentNode.parentId);
+        }
+        break;
+      case 'ArrowUp':
+        // 移动到同级上一个节点
+        if (currentNode.parentId) {
+          const parent = rectangles.find(r => r.id === currentNode.parentId);
+          const siblings = rectangles.filter(r => r.parentId === parent.id);
+          const currentIndex = siblings.findIndex(r => r.id === currentNode.id);
+          if (currentIndex > 0) {
+            nextNode = siblings[currentIndex - 1];
+          }
+        }
+        break;
+      case 'ArrowDown':
+        // 移动到同级下一个节点
+        if (currentNode.parentId) {
+          const parent = rectangles.find(r => r.id === currentNode.parentId);
+          const siblings = rectangles.filter(r => r.parentId === parent.id);
+          const currentIndex = siblings.findIndex(r => r.id === currentNode.id);
+          if (currentIndex < siblings.length - 1) {
+            nextNode = siblings[currentIndex + 1];
+          }
+        }
+        break;
+      default:
+        return;
+    }
+
+    if (nextNode) {
+      e.preventDefault();
+      setSelectedRect(nextNode.id);
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = async (e) => {
+      // 处理方向键
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        handleArrowKeys(e);
+        return;
+      }
+
       if (e.key === 'Tab') {
         e.preventDefault();
         
@@ -145,6 +204,11 @@ function App() {
     document.addEventListener('mouseup', handleDragEnd);
     return () => document.removeEventListener('mouseup', handleDragEnd);
   }, []);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleArrowKeys);
+    return () => document.removeEventListener('keydown', handleArrowKeys);
+  }, [selectedRect, rectangles]);
 
   return (
     <div className="App">
