@@ -6,6 +6,7 @@ import { useZoom } from './features/canvas/hooks/useZoom';
 import { useAI } from './hooks/useAI';
 import { buildContextPrompt } from './features/ai/utils/contextPrompt';
 import { AI_PROMPTS } from './config/prompts';
+import { Settings } from './components/Settings';
 
 function App() {
   const {
@@ -35,6 +36,7 @@ function App() {
   }), [transform]);
 
   const [isDragging, setIsDragging] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const { generateResponse } = useAI();
 
@@ -257,36 +259,29 @@ function App() {
 
   return (
     <div className="App">
-      <div className="split-layout">
-        <div className="mindmap-container">
-          <svg 
-            className={`canvas ${isDragging ? 'dragging' : ''}`}
-            onMouseDown={handleDragStart}
-            onWheel={handleZoom}
-          >
-            <g transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}>
-              <VirtualCanvas
-                nodes={rectangles}
-                links={rectangles.filter(r => r.parentId).map(r => ({
-                  source: rectangles.find(n => n.id === r.parentId),
-                  target: r
-                }))}
-                viewport={viewport}
-                scale={transform.scale}
-                selectedRect={selectedRect}
-                editingRect={editingRect}
-                onNodeClick={handleRectClick}
-                onNodeDoubleClick={handleRectDoubleClick}
-                onTextChange={updateNodeText}
-                onTextBlur={handleTextBlur}
-              />
-            </g>
-          </svg>
-        </div>
-      </div>
-      <div className="hint-text">
-        Press Tab and feel free to ask
-      </div>
+      <button
+        className="settings-trigger"
+        onClick={() => setShowSettings(true)}
+      >
+        设置
+      </button>
+      <VirtualCanvas
+        rectangles={rectangles}
+        selectedRect={selectedRect}
+        editingRect={editingRect}
+        transform={transform}
+        viewport={viewport}
+        isDragging={isDragging}
+        onRectClick={handleRectClick}
+        onRectDoubleClick={handleRectDoubleClick}
+        onCanvasClick={handleCanvasClick}
+        onDragStart={handleDragStart}
+        onZoom={handleZoom}
+        onPan={handlePan}
+        onTextChange={updateNodeText}
+        onTextBlur={handleTextBlur}
+      />
+      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
     </div>
   );
 }

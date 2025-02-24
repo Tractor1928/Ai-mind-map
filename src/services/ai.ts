@@ -1,15 +1,18 @@
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 export class AIService {
-  private baseURL: string;
-
-  constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+  getBaseURL(): string {
+    const userApiUrl = localStorage.getItem('apiUrl');
+    if (userApiUrl) {
+      // 移除末尾的斜杠，因为我们会在请求时添加
+      return userApiUrl.endsWith('/') ? userApiUrl.slice(0, -1) : userApiUrl;
+    }
+    return process.env.REACT_APP_API_URL || 'http://localhost:3001';
   }
 
   async generateResponse(messages: ChatCompletionMessageParam[], onContent?: (content: string) => void) {
     try {
-      const response = await fetch(`${this.baseURL}/api/chat`, {
+      const response = await fetch(`${this.getBaseURL()}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -18,11 +21,11 @@ export class AIService {
       });
 
       if (!response.ok) {
-        throw new Error('API request failed');
+        throw new Error(`API 请求失败: ${response.status} ${response.statusText}`);
       }
 
       const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response body');
+      if (!reader) throw new Error('无法读取响应内容');
 
       const decoder = new TextDecoder();
       let fullResponse = '';
@@ -46,7 +49,7 @@ export class AIService {
                 onContent?.(content);
               }
             } catch (e) {
-              console.warn('Failed to parse SSE data:', e);
+              console.warn('解析 SSE 数据失败:', e);
             }
           }
         }
@@ -54,7 +57,7 @@ export class AIService {
 
       return fullResponse;
     } catch (error: any) {
-      console.error('AI Service Error:', error);
+      console.error('AI 服务错误:', error);
       throw new Error(error?.message || '生成回答时出错');
     }
   }

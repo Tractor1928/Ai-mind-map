@@ -5,13 +5,12 @@ import { marked } from 'marked';
 
 const Node = ({ 
   node, 
-  basePosition, 
   isSelected, 
   isEditing,
-  onNodeClick,
-  onNodeDoubleClick,
+  onClick,
+  onDoubleClick,
   onTextChange,
-  onTextBlur 
+  onTextBlur
 }) => {
   // 添加文本区域引用
   const textareaRef = useRef(null);
@@ -48,73 +47,50 @@ const Node = ({
     // 只有问题节点且处于编辑状态时才显示文本框
     if (isEditing && node.type === 'question') {
       return (
-        <foreignObject
-          x={node.x + basePosition.x}
-          y={node.y + basePosition.y}
-          width={node.width}
-          height={node.height}
-        >
-          <textarea
-            ref={textareaRef}
-            value={node.text}
-            onChange={(e) => onTextChange(node.id, e.target.value)}
-            onBlur={onTextBlur}
-            onKeyDown={handleKeyDown}
-            autoFocus
-            className="node-textarea"
-            style={{
-              width: '100%',
-              minHeight: '100%',
-              padding: `${node.padding}px`,
-              fontSize: `${node.fontSize}px`,
-              fontFamily: node.fontFamily,
-              lineHeight: '1.2',
-              resize: 'none',
-              overflow: 'hidden'
-            }}
-          />
-        </foreignObject>
+        <textarea
+          ref={textareaRef}
+          value={node.text}
+          onChange={(e) => onTextChange?.(node.id, e.target.value)}
+          onBlur={onTextBlur}
+          onKeyDown={handleKeyDown}
+          className="node-textarea"
+          autoFocus
+          placeholder="输入你的问题..."
+        />
       );
     }
 
+    // 使用 marked 渲染 Markdown
+    const html = marked(node.text || '');
     return (
-      <foreignObject
-        x={node.x + basePosition.x}
-        y={node.y + basePosition.y}
-        width={node.width}
-        height={node.height}
-      >
-        <div
-          className="markdown-content"
-          dangerouslySetInnerHTML={{
-            __html: marked(node.text)
-          }}
-          style={{
-            padding: `${node.padding}px`,
-            fontSize: `${node.fontSize}px`,
-            fontFamily: node.fontFamily,
-            lineHeight: '1.2',
-          }}
-        />
-      </foreignObject>
+      <div 
+        className="node-text"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     );
   };
 
   return (
     <g
+      transform={`translate(${node.x},${node.y})`}
       onMouseDown={handleMouseDown}
-      onClick={(e) => onNodeClick(e, node.id)}
-      onDoubleClick={(e) => onNodeDoubleClick(e, node.id)}
-      className={`node ${isSelected ? 'selected' : ''}`}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      className={`node ${isSelected ? 'selected' : ''} ${node.type}`}
     >
       <rect
-        x={node.x + basePosition.x}
-        y={node.y + basePosition.y}
         width={node.width}
         height={node.height}
-        className={`rectangle ${isSelected ? 'selected' : ''} ${node.type}`}
+        rx={5}
+        className={`node-rect ${node.type}`}
       />
-      {renderText()}
+      <foreignObject
+        width={node.width}
+        height={node.height}
+        className="node-content"
+      >
+        {renderText()}
+      </foreignObject>
     </g>
   );
 };

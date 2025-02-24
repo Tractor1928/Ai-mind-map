@@ -4,63 +4,86 @@ import Connection from '../Connection';
 import { isNodeVisible } from '../../utils/viewport';
 
 const VirtualCanvas = ({
-  nodes,
-  links,
+  rectangles,
+  transform,
   viewport,
-  scale,
+  isDragging,
   selectedRect,
   editingRect,
-  onNodeClick,
-  onNodeDoubleClick,
+  onRectClick,
+  onRectDoubleClick,
+  onCanvasClick,
+  onDragStart,
+  onZoom,
+  onPan,
   onTextChange,
   onTextBlur
 }) => {
+  const nodes = rectangles;
+  const links = rectangles.filter(r => r.parentId).map(r => ({
+    source: rectangles.find(n => n.id === r.parentId),
+    target: r
+  }));
+
   const handleNodeClick = (e, id) => {
     e.stopPropagation();
-    onNodeClick(e, id);
+    onRectClick(e, id);
   };
 
   const handleNodeDoubleClick = (e, id) => {
     e.stopPropagation();
-    onNodeDoubleClick(e, id);
+    onRectDoubleClick(e, id);
   };
 
   const visibleNodes = useMemo(() => {
-    return nodes.filter(node => isNodeVisible(node, viewport, scale));
-  }, [nodes, viewport, scale]);
+    return nodes.filter(node => isNodeVisible(node, viewport, transform.scale));
+  }, [nodes, viewport, transform.scale]);
 
   const visibleLinks = useMemo(() => {
     return links.filter(link => {
-      const sourceVisible = isNodeVisible(link.source, viewport, scale);
-      const targetVisible = isNodeVisible(link.target, viewport, scale);
+      const sourceVisible = isNodeVisible(link.source, viewport, transform.scale);
+      const targetVisible = isNodeVisible(link.target, viewport, transform.scale);
       return sourceVisible || targetVisible;
     });
-  }, [links, viewport, scale]);
+  }, [links, viewport, transform.scale]);
 
   return (
-    <>
-      {visibleLinks.map(link => (
-        <Connection
-          key={`${link.source.id}-${link.target.id}`}
-          startNode={link.source}
-          endNode={link.target}
-          basePosition={{ x: 0, y: 0 }}
-        />
-      ))}
-      {visibleNodes.map(node => (
-        <Node
-          key={node.id}
-          node={node}
-          basePosition={{ x: 0, y: 0 }}
-          isSelected={selectedRect === node.id}
-          isEditing={editingRect === node.id}
-          onNodeClick={handleNodeClick}
-          onNodeDoubleClick={handleNodeDoubleClick}
-          onTextChange={onTextChange}
-          onTextBlur={onTextBlur}
-        />
-      ))}
-    </>
+    <div className="split-layout">
+      <div className="mindmap-container">
+        <svg 
+          className={`canvas ${isDragging ? 'dragging' : ''}`}
+          onMouseDown={onDragStart}
+          onWheel={onZoom}
+          onClick={onCanvasClick}
+        >
+          <g transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}>
+            {visibleLinks.map(link => (
+              <Connection
+                key={`${link.source.id}-${link.target.id}`}
+                startNode={link.source}
+                endNode={link.target}
+                basePosition={{ x: 0, y: 0 }}
+              />
+            ))}
+            {visibleNodes.map(node => (
+              <Node
+                key={node.id}
+                node={node}
+                isSelected={node.id === selectedRect}
+                isEditing={node.id === editingRect}
+                onClick={(e) => handleNodeClick(e, node.id)}
+                onDoubleClick={(e) => handleNodeDoubleClick(e, node.id)}
+                onTextChange={onTextChange}
+                onTextBlur={onTextBlur}
+              />
+            ))}
+          </g>
+        </svg>
+      </div>
+      <div className="hint-text">
+        Press Tab and feel free to ask
+      </div>
+    </div>
   );
 };
 
