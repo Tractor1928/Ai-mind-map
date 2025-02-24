@@ -16,20 +16,18 @@ export default {
 
       // 获取目标 URL
       const url = new URL(request.url);
-      const targetUrl = url.pathname.replace('/proxy', '');
-      console.log('Target URL:', targetUrl); // 添加日志
+      const targetUrl = url.pathname.replace('/proxy/', '');
+      console.log('Target URL:', targetUrl);
       
       // 创建新的请求
-      const modifiedRequest = new Request(
-        `https://ark.cn-beijing.volces.com/api/v3${targetUrl}`,
-        {
-          method: request.method,
-          headers: request.headers,
-          body: request.body,
-        }
-      );
-
-      console.log('Sending request to:', modifiedRequest.url); // 添加日志
+      const apiUrl = `https://ark.cn-beijing.volces.com/api/v3/${targetUrl}`;
+      console.log('Sending request to:', apiUrl);
+      
+      const modifiedRequest = new Request(apiUrl, {
+        method: request.method,
+        headers: request.headers,
+        body: request.method !== 'GET' ? request.body : null,
+      });
 
       // 设置超时
       const timeoutPromise = new Promise((_, reject) => {
@@ -43,17 +41,24 @@ export default {
       const response = await Promise.race([responsePromise, timeoutPromise]);
       
       // 创建新的响应，添加 CORS 头
-      const modifiedResponse = new Response(response.body, response);
-      modifiedResponse.headers.set('Access-Control-Allow-Origin', '*');
+      const modifiedResponse = new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': response.headers.get('Content-Type') || 'application/json',
+        },
+      });
       
       return modifiedResponse;
     } catch (error) {
-      console.error('Worker error:', error); // 添加错误日志
+      console.error('Worker error:', error);
       return new Response(
         JSON.stringify({ 
           error: error.message,
           stack: error.stack,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          url: request.url,
         }), 
         {
           status: 500,
