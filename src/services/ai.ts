@@ -4,7 +4,7 @@ export class AIService {
   // 在生产环境中使用 Cloudflare Worker URL，在开发环境中使用本地代理
   private getBaseURL(): string {
     return process.env.NODE_ENV === 'production'
-      ? 'https://ai-mind-map-proxy.你的workers域名.workers.dev/proxy'
+      ? 'https://ai-mind-map-proxy.nionxd1928.workers.dev/proxy'
       : 'http://localhost:8787/proxy';
   }
 
