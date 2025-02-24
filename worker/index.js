@@ -2,6 +2,13 @@
 export default {
   async fetch(request, env) {
     try {
+      // 记录请求信息
+      console.log('Received request:', {
+        url: request.url,
+        method: request.method,
+        headers: Object.fromEntries(request.headers.entries())
+      });
+
       // 处理 CORS 预检请求
       if (request.method === 'OPTIONS') {
         return new Response(null, {
@@ -17,30 +24,42 @@ export default {
       // 获取目标 URL
       const url = new URL(request.url);
       const targetUrl = url.pathname.replace('/proxy/', '');
-      console.log('Target URL:', targetUrl);
-      
-      // 创建新的请求
       const apiUrl = `https://ark.cn-beijing.volces.com/api/v3/${targetUrl}`;
-      console.log('Sending request to:', apiUrl);
       
+      console.log('Request details:', {
+        originalUrl: request.url,
+        targetUrl,
+        apiUrl
+      });
+
+      // 如果是测试连接请求，返回一个简单的成功响应
+      if (targetUrl === 'models') {
+        return new Response(JSON.stringify({ status: 'ok' }), {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+
+      // 创建新的请求
       const modifiedRequest = new Request(apiUrl, {
         method: request.method,
         headers: request.headers,
         body: request.method !== 'GET' ? request.body : null,
       });
 
-      // 设置超时
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 30000);
+      // 发送请求到目标服务器
+      const response = await fetch(modifiedRequest);
+      
+      // 记录响应信息
+      console.log('API Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
       });
 
-      // 发送请求到目标服务器
-      const responsePromise = fetch(modifiedRequest);
-      
-      // 使用 Promise.race 来处理超时
-      const response = await Promise.race([responsePromise, timeoutPromise]);
-      
-      // 创建新的响应，添加 CORS 头
+      // 创建新的响应
       const modifiedResponse = new Response(response.body, {
         status: response.status,
         statusText: response.statusText,
@@ -52,7 +71,12 @@ export default {
       
       return modifiedResponse;
     } catch (error) {
-      console.error('Worker error:', error);
+      console.error('Worker error:', {
+        message: error.message,
+        stack: error.stack,
+        url: request.url
+      });
+
       return new Response(
         JSON.stringify({ 
           error: error.message,
