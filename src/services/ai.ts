@@ -8,6 +8,15 @@ export class AIService {
   }
 
   private async fetchWithRetry(url: string, options: RequestInit, retries = 3): Promise<Response> {
+    if (!options.headers) {
+      options.headers = {};
+    }
+    
+    const apiKey = localStorage.getItem('apiKey');
+    if (apiKey) {
+      (options.headers as Record<string, string>)['Authorization'] = `Bearer ${apiKey}`;
+    }
+
     for (let i = 0; i < retries; i++) {
       try {
         const controller = new AbortController();
@@ -45,7 +54,7 @@ export class AIService {
     return {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-    };
+    } as HeadersInit;
   }
 
   async generateResponse(messages: ChatCompletionMessageParam[], onContent?: (content: string) => void) {
