@@ -11,19 +11,26 @@ export class AIService {
     for (let i = 0; i < retries; i++) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 秒超时
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 增加到 30 秒超时
 
+        console.log(`Attempt ${i + 1} - Sending request to:`, url);
         const response = await fetch(url, {
           ...options,
           signal: controller.signal
         });
 
         clearTimeout(timeoutId);
+        console.log(`Attempt ${i + 1} - Response received:`, {
+          status: response.status,
+          statusText: response.statusText
+        });
         return response;
       } catch (error) {
         console.log(`Attempt ${i + 1} failed:`, error);
         if (i === retries - 1) throw error;
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // 递增延迟
+        const delay = Math.pow(2, i) * 1000; // 指数退避延迟
+        console.log(`Waiting ${delay}ms before next attempt...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
     throw new Error('所有重试都失败了');
