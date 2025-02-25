@@ -20,7 +20,12 @@ export default {
       // 处理 OPTIONS 请求
       if (request.method === 'OPTIONS') {
         console.log('Handling OPTIONS request');
-        return new Response(null, { headers: corsHeaders });
+        return new Response(null, { 
+          headers: {
+            ...corsHeaders,
+            'Access-Control-Max-Age': '86400',
+          }
+        });
       }
 
       // 获取请求路径
@@ -51,11 +56,31 @@ export default {
       // 处理模型测试
       if (url.pathname === '/proxy/models') {
         console.log('Handling models test request');
-        return new Response(JSON.stringify({
-          status: 'ok',
-          message: 'Models endpoint is working',
-          timestamp: new Date().toISOString()
-        }), { headers: corsHeaders });
+        // 检查 Authorization header
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader) {
+          return new Response(JSON.stringify({
+            error: 'Missing Authorization header'
+          }), { 
+            status: 401,
+            headers: corsHeaders 
+          });
+        }
+
+        // 转发到实际的 API
+        const apiUrl = 'https://ark.cn-beijing.volces.com/api/v3/models';
+        const response = await fetch(apiUrl, {
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const responseData = await response.json();
+        return new Response(JSON.stringify(responseData), { 
+          status: response.status,
+          headers: corsHeaders 
+        });
       }
 
       // 处理其他 API 请求
@@ -65,28 +90,47 @@ export default {
         
         console.log('Proxying request to:', apiUrl);
 
-        const response = await fetch(apiUrl, {
+        // 获取原始请求的 headers
+        const headers = new Headers(request.headers);
+        
+        // 确保设置了正确的 Content-Type
+        headers.set('Content-Type', 'application/json');
+        
+        // 创建新的请求
+        const apiRequest = new Request(apiUrl, {
           method: request.method,
-          headers: {
-            ...Object.fromEntries(request.headers.entries()),
-            'User-Agent': 'Cloudflare Worker',
-          },
+          headers: headers,
           body: request.method !== 'GET' ? request.body : null,
         });
 
+        console.log('Sending request with headers:', Object.fromEntries(apiRequest.headers.entries()));
+
+        const response = await fetch(apiRequest);
         console.log('Received response:', {
           status: response.status,
           statusText: response.statusText,
           headers: Object.fromEntries(response.headers.entries())
         });
 
-        const modifiedResponse = new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: { ...corsHeaders }
-        });
+        // 如果是流式响应，需要特殊处理
+        if (response.headers.get('content-type')?.includes('text/event-stream')) {
+          return new Response(response.body, {
+            status: response.status,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+            }
+          });
+        }
 
-        return modifiedResponse;
+        // 普通响应
+        const responseData = await response.json();
+        return new Response(JSON.stringify(responseData), {
+          status: response.status,
+          headers: corsHeaders
+        });
       }
 
       // 处理未知路径
