@@ -7,6 +7,28 @@ export class AIService {
     return url;
   }
 
+  private async fetchWithRetry(url: string, options: RequestInit, retries = 3): Promise<Response> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 秒超时
+
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        return response;
+      } catch (error) {
+        console.log(`Attempt ${i + 1} failed:`, error);
+        if (i === retries - 1) throw error;
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // 递增延迟
+      }
+    }
+    throw new Error('所有重试都失败了');
+  }
+
   private getHeaders(): HeadersInit {
     const apiKey = localStorage.getItem('apiKey');
     if (!apiKey) {
@@ -29,7 +51,7 @@ export class AIService {
       const url = `${this.getBaseURL()}/chat/completions`;
       console.log('Sending request to:', url);
 
-      const response = await fetch(url, {
+      const response = await this.fetchWithRetry(url, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify({
@@ -62,7 +84,7 @@ export class AIService {
           if (done) break;
 
           const chunk = decoder.decode(value);
-          console.log('Received chunk:', chunk); // 添加日志
+          console.log('Received chunk:', chunk);
           const lines = chunk.split('\n');
 
           for (const line of lines) {
@@ -72,7 +94,7 @@ export class AIService {
 
               try {
                 const parsed = JSON.parse(data);
-                console.log('Parsed SSE data:', parsed); // 添加日志
+                console.log('Parsed SSE data:', parsed);
                 const content = parsed.choices?.[0]?.delta?.content || '';
                 if (content) {
                   fullResponse += content;
@@ -110,7 +132,7 @@ export class AIService {
       const url = `${this.getBaseURL()}/models`;
       console.log('Testing connection to:', url);
 
-      const response = await fetch(url, {
+      const response = await this.fetchWithRetry(url, {
         headers: this.getHeaders(),
       });
 

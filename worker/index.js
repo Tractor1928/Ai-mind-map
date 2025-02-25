@@ -1,144 +1,124 @@
 // Cloudflare Worker 代码
 export default {
   async fetch(request, env) {
-    try {
-      // 记录请求信息
-      const requestInfo = {
-        url: request.url,
-        method: request.method,
-        pathname: new URL(request.url).pathname,
-        headers: Object.fromEntries(request.headers.entries())
-      };
-      console.log('Debug - Request Info:', JSON.stringify(requestInfo, null, 2));
+    // 记录所有请求信息
+    console.log('Worker received request:', {
+      url: request.url,
+      method: request.method,
+      headers: Object.fromEntries(request.headers.entries())
+    });
 
-      // 处理根路径请求
-      if (requestInfo.pathname === '/') {
+    try {
+      // 基本响应头
+      const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Content-Type': 'application/json',
+      };
+
+      // 处理 OPTIONS 请求
+      if (request.method === 'OPTIONS') {
+        console.log('Handling OPTIONS request');
+        return new Response(null, { headers: corsHeaders });
+      }
+
+      // 获取请求路径
+      const url = new URL(request.url);
+      console.log('Processing URL:', url.pathname);
+
+      // 处理根路径
+      if (url.pathname === '/' || url.pathname === '/proxy') {
+        console.log('Handling root path request');
         return new Response(JSON.stringify({
           status: 'ok',
           message: 'Worker is running',
-          endpoints: ['/health', '/proxy/health', '/proxy/models'],
+          version: '1.0.0',
           timestamp: new Date().toISOString()
-        }), {
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        });
+        }), { headers: corsHeaders });
       }
 
-      // 处理 CORS 预检请求
-      if (request.method === 'OPTIONS') {
-        return new Response(null, {
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Max-Age': '86400',
-          },
-        });
-      }
-
-      // 获取目标 URL
-      const url = new URL(request.url);
-      
-      // 添加健康检查端点
+      // 处理健康检查
       if (url.pathname === '/health' || url.pathname === '/proxy/health') {
-        console.log('Debug - Health check requested');
+        console.log('Handling health check request');
         return new Response(JSON.stringify({
           status: 'ok',
-          message: 'Worker is healthy',
-          path: url.pathname,
+          message: 'Health check passed',
           timestamp: new Date().toISOString()
-        }), {
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        });
+        }), { headers: corsHeaders });
       }
 
-      const targetUrl = url.pathname.replace('/proxy/', '');
-      const apiUrl = `https://ark.cn-beijing.volces.com/api/v3/${targetUrl}`;
-      
-      console.log('Debug - Route info:', {
-        originalUrl: request.url,
-        pathname: url.pathname,
-        targetUrl,
-        apiUrl
-      });
-
-      // 如果是测试连接请求，返回一个简单的成功响应
-      if (targetUrl === 'models') {
-        console.log('Debug - Models endpoint requested');
-        return new Response(JSON.stringify({ 
+      // 处理模型测试
+      if (url.pathname === '/proxy/models') {
+        console.log('Handling models test request');
+        return new Response(JSON.stringify({
           status: 'ok',
-          message: 'Connection test successful',
-          path: url.pathname,
+          message: 'Models endpoint is working',
           timestamp: new Date().toISOString()
-        }), {
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json',
-          },
-        });
+        }), { headers: corsHeaders });
       }
 
-      // 创建新的请求
-      const modifiedRequest = new Request(apiUrl, {
-        method: request.method,
-        headers: new Headers(request.headers),
-        body: request.method !== 'GET' ? request.body : null,
+      // 处理其他 API 请求
+      if (url.pathname.startsWith('/proxy/')) {
+        const targetPath = url.pathname.replace('/proxy/', '');
+        const apiUrl = `https://ark.cn-beijing.volces.com/api/v3/${targetPath}`;
+        
+        console.log('Proxying request to:', apiUrl);
+
+        const response = await fetch(apiUrl, {
+          method: request.method,
+          headers: {
+            ...Object.fromEntries(request.headers.entries()),
+            'User-Agent': 'Cloudflare Worker',
+          },
+          body: request.method !== 'GET' ? request.body : null,
+        });
+
+        console.log('Received response:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+
+        const modifiedResponse = new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: { ...corsHeaders }
+        });
+
+        return modifiedResponse;
+      }
+
+      // 处理未知路径
+      console.log('Unknown path requested:', url.pathname);
+      return new Response(JSON.stringify({
+        error: 'Not Found',
+        path: url.pathname,
+        timestamp: new Date().toISOString()
+      }), {
+        status: 404,
+        headers: corsHeaders
       });
 
-      console.log('Debug - Sending request to API:', {
-        url: apiUrl,
-        method: modifiedRequest.method,
-        headers: Object.fromEntries(modifiedRequest.headers.entries())
-      });
-
-      // 发送请求到目标服务器
-      const response = await fetch(modifiedRequest);
-      
-      // 记录响应信息
-      console.log('Debug - API Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
-      });
-
-      // 创建新的响应
-      const modifiedResponse = new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': response.headers.get('Content-Type') || 'application/json',
-        },
-      });
-      
-      return modifiedResponse;
     } catch (error) {
-      console.error('Debug - Worker error:', {
+      console.error('Worker error:', {
         message: error.message,
         stack: error.stack,
         url: request.url
       });
 
-      return new Response(
-        JSON.stringify({ 
-          error: error.message,
-          stack: error.stack,
-          timestamp: new Date().toISOString(),
-          url: request.url,
-        }), 
-        {
-          status: 500,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
+      return new Response(JSON.stringify({
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        url: request.url,
+      }), {
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
         }
-      );
+      });
     }
-  },
+  }
 }; 
