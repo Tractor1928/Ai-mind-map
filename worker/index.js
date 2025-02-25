@@ -24,6 +24,36 @@ async function handleRequest(request) {
     const url = new URL(request.url)
     const path = url.pathname.replace('/proxy', '')
     
+    // 特殊处理 /models 路径
+    if (path === '/models') {
+      // 检查授权头
+      const authHeader = request.headers.get('Authorization')
+      if (!authHeader) {
+        return new Response(JSON.stringify({
+          error: 'Missing Authorization header'
+        }), {
+          status: 401,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      // 返回一个简单的模型列表响应
+      return new Response(JSON.stringify({
+        data: [
+          { id: 'ep-20241226145851-qrc5d', name: 'Default Model' }
+        ]
+      }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
     // 构建转发到 API 的请求
     const apiUrl = `https://ark.cn-beijing.volces.com/api/v3${path}`
     
@@ -41,6 +71,19 @@ async function handleRequest(request) {
     // 发送请求到 API
     const response = await fetch(apiRequest)
     
+    // 处理流式响应
+    if (response.headers.get('content-type')?.includes('text/event-stream')) {
+      return new Response(response.body, {
+        status: response.status,
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          ...corsHeaders
+        }
+      })
+    }
+    
     // 读取响应内容
     let responseBody
     const contentType = response.headers.get('content-type') || ''
@@ -48,12 +91,20 @@ async function handleRequest(request) {
     if (contentType.includes('application/json')) {
       // 安全地解析 JSON
       try {
-        responseBody = await response.json()
-        // 将对象转回字符串
-        responseBody = JSON.stringify(responseBody)
+        const text = await response.text()
+        // 尝试解析 JSON
+        try {
+          const json = JSON.parse(text)
+          responseBody = JSON.stringify(json)
+        } catch (e) {
+          // JSON 解析失败，直接返回文本
+          responseBody = text
+        }
       } catch (e) {
-        // 如果 JSON 解析失败，直接使用文本
-        responseBody = await response.text()
+        responseBody = JSON.stringify({
+          error: 'Failed to read response body',
+          message: e.message
+        })
       }
     } else {
       // 非 JSON 内容直接使用文本
@@ -65,7 +116,7 @@ async function handleRequest(request) {
       status: response.status,
       statusText: response.statusText,
       headers: {
-        ...Object.fromEntries(response.headers),
+        'Content-Type': 'application/json',
         ...corsHeaders
       }
     })
