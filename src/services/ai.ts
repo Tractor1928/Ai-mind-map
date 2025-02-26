@@ -57,7 +57,11 @@ export class AIService {
     } as HeadersInit;
   }
 
-  async generateResponse(messages: ChatCompletionMessageParam[], onContent?: (content: string) => void) {
+  async generateResponse(
+    messages: ChatCompletionMessageParam[], 
+    onContent?: (content: string) => void,
+    onReasoningContent?: (reasoning: string) => void
+  ) {
     try {
       const model = localStorage.getItem('model');
       if (!model) {
@@ -111,10 +115,18 @@ export class AIService {
               try {
                 const parsed = JSON.parse(data);
                 console.log('Parsed SSE data:', parsed);
+                
+                // 处理常规内容
                 const content = parsed.choices?.[0]?.delta?.content || '';
                 if (content) {
                   fullResponse += content;
                   onContent(content);
+                }
+                
+                // 处理思考过程内容
+                const reasoning = parsed.choices?.[0]?.delta?.reasoning_content || '';
+                if (reasoning && onReasoningContent) {
+                  onReasoningContent(reasoning);
                 }
               } catch (e) {
                 console.warn('解析 SSE 数据失败:', e, 'Raw data:', data);

@@ -37,6 +37,8 @@ function App() {
 
   const [isDragging, setIsDragging] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [reasoningContent, setReasoningContent] = useState('');
+  const [showReasoning, setShowReasoning] = useState(false);
 
   const { generateResponse } = useAI();
 
@@ -74,6 +76,9 @@ function App() {
         // 创建带有加载提示的回答节点
         const answerNode = addNode(editedNode, '正在思考中...', 'answer');
         
+        // 清空思考过程
+        setReasoningContent('');
+        
         try {
           const messages = [
             { role: 'system', content: AI_PROMPTS.system },
@@ -88,7 +93,11 @@ function App() {
             updateNodeText(answerNode.id, currentResponse);
           };
           
-          await generateResponse(messages, onProgress);
+          const onReasoningProgress = (reasoning) => {
+            setReasoningContent(prev => prev + reasoning);
+          };
+          
+          await generateResponse(messages, onProgress, onReasoningProgress);
         } catch (error) {
           console.error('AI 回答生成失败:', error);
           updateNodeText(answerNode.id, '抱歉，回答生成失败');
@@ -301,6 +310,12 @@ function App() {
         >
           删除节点
         </button>
+        <button
+          className="control-button reasoning-button"
+          onClick={() => setShowReasoning(!showReasoning)}
+        >
+          {showReasoning ? '隐藏思考过程' : '显示思考过程'}
+        </button>
       </div>
       <VirtualCanvas
         rectangles={rectangles}
@@ -319,6 +334,15 @@ function App() {
         onTextBlur={handleTextBlur}
       />
       {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+      
+      {showReasoning && reasoningContent && (
+        <div className="reasoning-panel">
+          <h3>AI思考过程</h3>
+          <div className="reasoning-content">
+            {reasoningContent}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
