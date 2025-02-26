@@ -174,3 +174,45 @@ foreignObject input {
 .settings-trigger:hover {
   background-color: #1976d2;
 }
+
+/* 控制按钮组样式 */
+.app-controls {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 50;
+  display: flex;
+  gap: 8px;
+}
+
+.control-button {
+  padding: 8px 16px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.control-button:hover {
+  background-color: #1976d2;
+}
+
+/* 为不同功能的按钮设置不同颜色 */
+.control-button:nth-child(2) {
+  background-color: #4caf50; /* 新增节点按钮为绿色 */
+}
+
+.control-button:nth-child(2):hover {
+  background-color: #388e3c;
+}
+
+.control-button:nth-child(3) {
+  background-color: #f44336; /* 删除节点按钮为红色 */
+}
+
+.control-button:nth-child(3):hover {
+  background-color: #d32f2f;
+}

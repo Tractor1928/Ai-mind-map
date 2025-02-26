@@ -259,12 +259,49 @@ function App() {
 
   return (
     <div className="App">
-      <button
-        className="settings-trigger"
-        onClick={() => setShowSettings(true)}
-      >
-        设置
-      </button>
+      <div className="app-controls">
+        <button
+          className="control-button"
+          onClick={() => setShowSettings(true)}
+        >
+          设置
+        </button>
+        <button
+          className="control-button"
+          onClick={() => {
+            // 模拟Tab键功能
+            if (!selectedRect && rectangles.length === 0) {
+              const firstNode = addNode(null, '', 'question');
+              setEditingRect(firstNode.id);
+              return;
+            }
+            
+            const currentRect = rectangles.find(r => r.id === selectedRect);
+            if (currentRect?.type === 'question') {
+              return;
+            }
+            
+            if (currentRect?.type === 'answer') {
+              const newQuestionNode = addNode(currentRect, '', 'question');
+              setEditingRect(newQuestionNode.id);
+            }
+          }}
+        >
+          新增节点
+        </button>
+        <button
+          className="control-button"
+          onClick={() => {
+            // 模拟Delete键功能
+            const currentRect = rectangles.find(r => r.id === selectedRect);
+            if (currentRect?.type === 'question') {
+              deleteNode(currentRect.id);
+            }
+          }}
+        >
+          删除节点
+        </button>
+      </div>
       <VirtualCanvas
         rectangles={rectangles}
         selectedRect={selectedRect}
