@@ -24,6 +24,22 @@ async function handleRequest(request) {
     const url = new URL(request.url)
     const path = url.pathname.replace('/proxy', '')
     
+    // 处理根路径请求
+    if (path === '' || path === '/') {
+      return new Response(JSON.stringify({
+        status: 'ok',
+        message: '沙锅导图 API 代理服务正常运行中',
+        usage: '请在应用中配置您的 API Key 后使用此服务',
+        documentation: '访问 /proxy/models 路径需要提供有效的 Authorization 头'
+      }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
     // 特殊处理 /models 路径
     if (path === '/models') {
       // 检查授权头
@@ -47,6 +63,24 @@ async function handleRequest(request) {
         ]
       }), {
         status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
+    // 对于其他 API 路径，检查是否有 Authorization 头
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({
+        error: {
+          code: 'AuthenticationError',
+          message: '请在应用中配置您的 API Key',
+          type: 'AuthenticationError'
+        }
+      }), {
+        status: 401,
         headers: {
           'Content-Type': 'application/json',
           ...corsHeaders
