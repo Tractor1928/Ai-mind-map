@@ -17,7 +17,8 @@ function App() {
     setEditingRect,
     addNode,
     updateNodeText,
-    deleteNode
+    deleteNode,
+    updateNodeHeight
   } = useNode();
 
   const {
@@ -212,6 +213,13 @@ function App() {
     requestAnimationFrame(animate);
   }, [rectangles, transform.scale, transform.x, transform.y, setTransform]);
 
+  // 处理节点高度变化
+  const handleNodeHeightChange = (id, height) => {
+    if (updateNodeHeight) {
+      updateNodeHeight(id, height);
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = async (e) => {
       // 处理方向键
@@ -332,6 +340,7 @@ function App() {
         onPan={handlePan}
         onTextChange={updateNodeText}
         onTextBlur={handleTextBlur}
+        onNodeHeightChange={handleNodeHeightChange}
       />
       {showSettings && <Settings onClose={() => setShowSettings(false)} />}
       

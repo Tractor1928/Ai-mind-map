@@ -141,6 +141,28 @@ export const useNodeOperations = () => {
     setEditingRect(null);
   }, []);
 
+  // 添加更新节点高度的方法
+  const updateNodeHeight = useCallback((id, height) => {
+    setRectangles(prev => {
+      // 检查高度是否有实质性变化，避免不必要的更新
+      const node = prev.find(r => r.id === id);
+      if (!node || Math.abs(node.height - height) < 5) {
+        return prev;
+      }
+
+      const updatedRects = prev.map(rect => {
+        if (rect.id === id) {
+          // 创建节点的副本并更新高度
+          const updatedRect = {...rect, height};
+          return updatedRect;
+        }
+        return rect;
+      });
+      
+      return updatedRects;
+    });
+  }, []);
+
   return {
     rectangles,
     selectedRect,
@@ -149,6 +171,7 @@ export const useNodeOperations = () => {
     setEditingRect,
     addNode,
     updateNodeText,
-    deleteNode
+    deleteNode,
+    updateNodeHeight
   };
 };

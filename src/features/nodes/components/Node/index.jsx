@@ -1,5 +1,5 @@
 // src/components/Node/index.jsx
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import './Node.css';
 import { marked } from 'marked';
 
@@ -10,10 +10,13 @@ const Node = ({
   onClick,
   onDoubleClick,
   onTextChange,
-  onTextBlur
+  onTextBlur,
+  onHeightChange // 新增高度变化回调
 }) => {
   // 添加文本区域引用
   const textareaRef = useRef(null);
+  const contentRef = useRef(null);
+  const [contentHeight, setContentHeight] = useState(node.height);
   
   // 添加自动调整高度的效果
   useEffect(() => {
@@ -23,6 +26,29 @@ const Node = ({
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [isEditing, node.text]);
+
+  // 使用 ResizeObserver 监测内容高度变化
+  useEffect(() => {
+    if (!contentRef.current) return;
+    
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        const newHeight = Math.max(entry.contentRect.height + 16, 100); // 16px 为上下 padding 总和
+        if (Math.abs(newHeight - contentHeight) > 5) { // 只有高度变化超过 5px 才更新，避免微小变化触发更新
+          setContentHeight(newHeight);
+          if (onHeightChange) {
+            onHeightChange(node.id, newHeight);
+          }
+        }
+      }
+    });
+    
+    resizeObserver.observe(contentRef.current);
+    
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [node.id, contentHeight, onHeightChange]);
 
   // 配置 marked 选项
   marked.setOptions({
@@ -64,6 +90,7 @@ const Node = ({
     const html = marked(node.text || '');
     return (
       <div 
+        ref={contentRef}
         className="node-text"
         dangerouslySetInnerHTML={{ __html: html }}
       />
@@ -80,14 +107,16 @@ const Node = ({
     >
       <rect
         width={node.width}
-        height={node.height}
+        height={contentHeight}
         rx={5}
         className={`node-rect ${node.type}`}
+        style={{ transition: 'height 0.3s ease' }}
       />
       <foreignObject
         width={node.width}
-        height={node.height}
+        height={contentHeight}
         className="node-content"
+        style={{ transition: 'height 0.3s ease' }}
       >
         {renderText()}
       </foreignObject>

@@ -17,7 +17,8 @@ const VirtualCanvas = ({
   onZoom,
   onPan,
   onTextChange,
-  onTextBlur
+  onTextBlur,
+  onNodeHeightChange
 }) => {
   const nodes = rectangles;
   const links = rectangles.filter(r => r.parentId).map(r => ({
@@ -33,6 +34,12 @@ const VirtualCanvas = ({
   const handleNodeDoubleClick = (e, id) => {
     e.stopPropagation();
     onRectDoubleClick(e, id);
+  };
+
+  const handleNodeHeightChange = (id, height) => {
+    if (onNodeHeightChange) {
+      onNodeHeightChange(id, height);
+    }
   };
 
   const visibleNodes = useMemo(() => {
@@ -75,6 +82,7 @@ const VirtualCanvas = ({
                 onDoubleClick={(e) => handleNodeDoubleClick(e, node.id)}
                 onTextChange={onTextChange}
                 onTextBlur={onTextBlur}
+                onHeightChange={handleNodeHeightChange}
               />
             ))}
           </g>

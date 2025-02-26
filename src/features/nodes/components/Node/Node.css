@@ -120,7 +120,7 @@
 
 .node-content {
   padding: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .node-text {
@@ -130,6 +130,7 @@
   padding: 0;
   white-space: pre-wrap;
   word-break: break-word;
+  overflow: visible;
 }
 
 .node-textarea {
@@ -144,4 +145,41 @@
   padding: 0;
   margin: 0;
   font-family: inherit;
+}
+
+.node-rect, .node-content {
+  transition: height 0.3s ease;
+}
+
+.node-text p {
+  margin-bottom: 0.5em;
+}
+
+.node-text p:last-child {
+  margin-bottom: 0;
+}
+
+.node-text ul, .node-text ol {
+  padding-left: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.node-text pre {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.5em;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 0.5em;
+}
+
+.node-text code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.node-text img {
+  max-width: 100%;
+  height: auto;
 } 
