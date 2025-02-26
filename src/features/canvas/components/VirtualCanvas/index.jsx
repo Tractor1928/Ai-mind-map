@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import Node from '../../../nodes/components/Node';
 import Connection from '../Connection';
 import { isNodeVisible } from '../../utils/viewport';
+import './VirtualCanvas.css';
 
 const VirtualCanvas = ({
   rectangles,
@@ -70,6 +71,30 @@ const VirtualCanvas = ({
           onWheel={onZoom}
           onClick={onCanvasClick}
         >
+          <defs>
+            <marker
+              id="arrowhead"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#999"/>
+            </marker>
+            <marker
+              id="arrowhead-hover"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#2196f3"/>
+            </marker>
+          </defs>
           <g transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}>
             {visibleLinks.map(link => (
               <Connection

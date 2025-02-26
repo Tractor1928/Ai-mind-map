@@ -1,0 +1,11 @@
+.connection-path {
+  transition: d 0.3s ease, stroke 0.3s ease;
+  pointer-events: none; /* 确保连接线不会阻挡鼠标事件 */
+}
+
+/* 悬停效果 */
+.node:hover + .connection-path,
+.connection-path:hover {
+  stroke: #2196f3;
+  stroke-width: 2px;
+} 
