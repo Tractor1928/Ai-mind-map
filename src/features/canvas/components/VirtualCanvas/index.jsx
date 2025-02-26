@@ -18,7 +18,8 @@ const VirtualCanvas = ({
   onPan,
   onTextChange,
   onTextBlur,
-  onNodeHeightChange
+  onNodeHeightChange,
+  onNodeWidthChange
 }) => {
   const nodes = rectangles;
   const links = rectangles.filter(r => r.parentId).map(r => ({
@@ -39,6 +40,12 @@ const VirtualCanvas = ({
   const handleNodeHeightChange = (id, height) => {
     if (onNodeHeightChange) {
       onNodeHeightChange(id, height);
+    }
+  };
+
+  const handleNodeWidthChange = (id, width) => {
+    if (onNodeWidthChange) {
+      onNodeWidthChange(id, width);
     }
   };
 
@@ -83,6 +90,7 @@ const VirtualCanvas = ({
                 onTextChange={onTextChange}
                 onTextBlur={onTextBlur}
                 onHeightChange={handleNodeHeightChange}
+                onWidthChange={handleNodeWidthChange}
               />
             ))}
           </g>

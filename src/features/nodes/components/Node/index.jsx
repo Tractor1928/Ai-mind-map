@@ -11,12 +11,14 @@ const Node = ({
   onDoubleClick,
   onTextChange,
   onTextBlur,
-  onHeightChange // 新增高度变化回调
+  onHeightChange, // 高度变化回调
+  onWidthChange   // 添加宽度变化回调
 }) => {
   // 添加文本区域引用
   const textareaRef = useRef(null);
   const contentRef = useRef(null);
   const [contentHeight, setContentHeight] = useState(node.height);
+  const [contentWidth, setContentWidth] = useState(node.width);
   
   // 添加自动调整高度的效果
   useEffect(() => {
@@ -27,17 +29,27 @@ const Node = ({
     }
   }, [isEditing, node.text]);
 
-  // 使用 ResizeObserver 监测内容高度变化
+  // 使用 ResizeObserver 监测内容高度和宽度变化
   useEffect(() => {
     if (!contentRef.current) return;
     
     const resizeObserver = new ResizeObserver(entries => {
       for (let entry of entries) {
+        // 处理高度变化
         const newHeight = Math.max(entry.contentRect.height + 16, 100); // 16px 为上下 padding 总和
         if (Math.abs(newHeight - contentHeight) > 5) { // 只有高度变化超过 5px 才更新，避免微小变化触发更新
           setContentHeight(newHeight);
           if (onHeightChange) {
             onHeightChange(node.id, newHeight);
+          }
+        }
+        
+        // 处理宽度变化
+        const newWidth = Math.max(entry.contentRect.width + 16, 200); // 16px 为左右 padding 总和
+        if (Math.abs(newWidth - contentWidth) > 5 && newWidth <= 600) { // 只有宽度变化超过 5px 且不超过最大宽度才更新
+          setContentWidth(newWidth);
+          if (onWidthChange) {
+            onWidthChange(node.id, newWidth);
           }
         }
       }
@@ -48,7 +60,7 @@ const Node = ({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [node.id, contentHeight, onHeightChange]);
+  }, [node.id, contentHeight, contentWidth, onHeightChange, onWidthChange]);
 
   // 配置 marked 选项
   marked.setOptions({
@@ -110,13 +122,13 @@ const Node = ({
         height={contentHeight}
         rx={5}
         className={`node-rect ${node.type}`}
-        style={{ transition: 'height 0.3s ease' }}
+        style={{ transition: 'height 0.3s ease, width 0.3s ease' }}
       />
       <foreignObject
         width={node.width}
         height={contentHeight}
         className="node-content"
-        style={{ transition: 'height 0.3s ease' }}
+        style={{ transition: 'height 0.3s ease, width 0.3s ease' }}
       >
         {renderText()}
       </foreignObject>

@@ -163,6 +163,32 @@ export const useNodeOperations = () => {
     });
   }, []);
 
+  // 添加更新节点宽度的方法
+  const updateNodeWidth = useCallback((id, width) => {
+    setRectangles(prev => {
+      // 检查宽度是否有实质性变化，避免不必要的更新
+      const node = prev.find(r => r.id === id);
+      if (!node || Math.abs(node.width - width) < 5) {
+        return prev;
+      }
+
+      const updatedRects = prev.map(rect => {
+        if (rect.id === id) {
+          // 创建节点的副本并更新宽度
+          const updatedRect = {...rect};
+          // 确保宽度在最小和最大范围内
+          updatedRect.width = Math.min(Math.max(width, 200), 600);
+          return updatedRect;
+        }
+        return rect;
+      });
+      
+      // 宽度变化可能需要重新计算布局
+      setShouldUpdateLayout(true);
+      return updatedRects;
+    });
+  }, []);
+
   return {
     rectangles,
     selectedRect,
@@ -172,6 +198,7 @@ export const useNodeOperations = () => {
     addNode,
     updateNodeText,
     deleteNode,
-    updateNodeHeight
+    updateNodeHeight,
+    updateNodeWidth
   };
 };

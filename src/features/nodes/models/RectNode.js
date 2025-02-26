@@ -15,14 +15,15 @@ class RectNode {
     this.parentId = null;    // 添加父节点ID
     this.childrenIds = [];   // 添加子节点ID数组
     this.level = 0;  // 添加层级属性
-    this.maxWidth = 600;    // 从200改为600
-    this.width = 600;       // 从200改为600
+    this.minWidth = 200;     // 最小宽度
+    this.maxWidth = 600;     // 最大宽度
+    this.width = 200;        // 初始宽度设为最小宽度
     this.height = 100;   
     this.padding = 10;
     this.fontSize = 14;
     this.fontFamily = 'Arial';
     
-    // 移除固定高度，改为通过计算得到
+    // 根据文本内容计算尺寸
     const dimensions = this.calculateDimensions(text);
     this.width = dimensions.width;
     this.height = dimensions.height;
@@ -30,21 +31,30 @@ class RectNode {
   }
 
   calculateDimensions(text) {
-    if (!text) return { width: 600, height: 100, lines: [''] };
+    if (!text) return { width: this.minWidth, height: 100, lines: [''] };
     
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     context.font = `${this.fontSize}px ${this.fontFamily}`;
     
-    const maxLineWidth = this.maxWidth - (this.padding * 2);
+    // 计算文本的实际宽度
+    const textWidth = context.measureText(text).width;
+    
+    // 根据文本宽度确定节点宽度，保持在最小和最大宽度之间
+    const nodeWidth = Math.min(Math.max(textWidth + (this.padding * 2), this.minWidth), this.maxWidth);
+    
+    const maxLineWidth = nodeWidth - (this.padding * 2);
     const lines = [];
     
-    // 移除所有换行符,将文本合并为一个段落
-    const paragraph = text.replace(/\n+/g, ' ').trim();
+    // 处理文本换行
+    const paragraphs = text.split('\n');
     
-    if (!paragraph) {
-      lines.push('');
-    } else {
+    for (let paragraph of paragraphs) {
+      if (!paragraph.trim()) {
+        lines.push('');
+        continue;
+      }
+      
       const hasEnglish = /[a-zA-Z]/.test(paragraph);
       
       if (hasEnglish) {
@@ -84,7 +94,7 @@ class RectNode {
     const textHeight = Math.max(100, (lines.length * lineHeight) + (this.padding * 2));
     
     return {
-      width: this.maxWidth,
+      width: nodeWidth,
       height: textHeight,
       lines: lines
     };
@@ -128,7 +138,7 @@ class RectNode {
 
   // 添加设置尺寸的方法
   setDimensions(width, height) {
-    this.width = width;
+    this.width = Math.min(Math.max(width, this.minWidth), this.maxWidth);
     this.height = height;
   }
 
@@ -171,8 +181,8 @@ class RectNode {
     const textWidth = Math.max(...widths);
     const textHeight = lineHeight * lines.length;
     
-    // 修改最小宽度为600px
-    this.width = Math.max(textWidth + (this.padding * 2), 600);
+    // 根据文本宽度确定节点宽度，保持在最小和最大宽度之间
+    this.width = Math.min(Math.max(textWidth + (this.padding * 2), this.minWidth), this.maxWidth);
     this.height = Math.max(textHeight + (this.padding * 2), 100);
   }
 }

@@ -18,7 +18,8 @@ function App() {
     addNode,
     updateNodeText,
     deleteNode,
-    updateNodeHeight
+    updateNodeHeight,
+    updateNodeWidth
   } = useNode();
 
   const {
@@ -215,9 +216,11 @@ function App() {
 
   // 处理节点高度变化
   const handleNodeHeightChange = (id, height) => {
-    if (updateNodeHeight) {
-      updateNodeHeight(id, height);
-    }
+    updateNodeHeight(id, height);
+  };
+  
+  const handleNodeWidthChange = (id, width) => {
+    updateNodeWidth(id, width);
   };
 
   useEffect(() => {
@@ -341,6 +344,7 @@ function App() {
         onTextChange={updateNodeText}
         onTextBlur={handleTextBlur}
         onNodeHeightChange={handleNodeHeightChange}
+        onNodeWidthChange={handleNodeWidthChange}
       />
       {showSettings && <Settings onClose={() => setShowSettings(false)} />}
       
