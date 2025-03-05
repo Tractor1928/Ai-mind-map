@@ -42,7 +42,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showApiTest, setShowApiTest] = useState(false);
   const [reasoningContent, setReasoningContent] = useState('');
-  const [showReasoning, setShowReasoning] = useState(false);
+  const [showReasoning, setShowReasoning] = useState(true);
 
   const { generateResponse } = useAI();
 
