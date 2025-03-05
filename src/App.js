@@ -380,6 +380,7 @@ function App() {
         onTextBlur={handleTextBlur}
         onNodeHeightChange={handleNodeHeightChange}
         onNodeWidthChange={handleNodeWidthChange}
+        setTransform={setTransform}
       />
 
       {showSettings && (

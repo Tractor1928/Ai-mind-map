@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import Node from '../../../nodes/components/Node';
 import Connection from '../Connection';
 import { isNodeVisible } from '../../utils/viewport';
@@ -20,8 +20,13 @@ const VirtualCanvas = ({
   onTextChange,
   onTextBlur,
   onNodeHeightChange,
-  onNodeWidthChange
+  onNodeWidthChange,
+  setTransform
 }) => {
+  const [showGrid, setShowGrid] = useState(true);
+  const [showZoomIndicator, setShowZoomIndicator] = useState(false);
+  const zoomIndicatorTimeoutRef = useRef(null);
+  
   const nodes = rectangles;
   const links = rectangles.filter(r => r.parentId).map(r => ({
     source: rectangles.find(n => n.id === r.parentId),
@@ -31,6 +36,21 @@ const VirtualCanvas = ({
   // 添加对SVG元素的引用
   const svgRef = useRef(null);
 
+  // 显示缩放指示器的函数
+  const showZoomIndicatorTemporarily = useCallback(() => {
+    setShowZoomIndicator(true);
+    
+    // 清除之前的定时器
+    if (zoomIndicatorTimeoutRef.current) {
+      clearTimeout(zoomIndicatorTimeoutRef.current);
+    }
+    
+    // 设置新的定时器，1.5秒后隐藏缩放指示器
+    zoomIndicatorTimeoutRef.current = setTimeout(() => {
+      setShowZoomIndicator(false);
+    }, 1500);
+  }, []);
+
   // 使用useEffect添加被动事件监听器
   useEffect(() => {
     const svgElement = svgRef.current;
@@ -38,6 +58,10 @@ const VirtualCanvas = ({
 
     // 滚轮事件处理函数
     const handleWheel = (event) => {
+      // 显示缩放指示器
+      showZoomIndicatorTemporarily();
+      
+      // 调用原来的缩放处理函数
       onZoom(event);
     };
 
@@ -47,8 +71,39 @@ const VirtualCanvas = ({
     // 清理函数
     return () => {
       svgElement.removeEventListener('wheel', handleWheel);
+      if (zoomIndicatorTimeoutRef.current) {
+        clearTimeout(zoomIndicatorTimeoutRef.current);
+      }
     };
-  }, [onZoom]);
+  }, [onZoom, showZoomIndicatorTemporarily]);
+
+  // 切换网格显示
+  const toggleGrid = () => {
+    setShowGrid(!showGrid);
+  };
+  
+  // 重置视图
+  const resetView = () => {
+    if (setTransform) {
+      // 显示缩放指示器
+      showZoomIndicatorTemporarily();
+      
+      setTransform({
+        scale: 1,
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2
+      });
+    }
+  };
+
+  // 组件卸载时清除定时器
+  useEffect(() => {
+    return () => {
+      if (zoomIndicatorTimeoutRef.current) {
+        clearTimeout(zoomIndicatorTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleNodeClick = (e, id) => {
     e.stopPropagation();
@@ -84,12 +139,15 @@ const VirtualCanvas = ({
     });
   }, [links, viewport, transform.scale]);
 
+  // 根据showGrid状态设置画布类名
+  const canvasClassName = `canvas ${isDragging ? 'dragging' : ''} ${showGrid ? 'with-grid' : 'no-grid'}`;
+
   return (
     <div className="split-layout">
       <div className="mindmap-container">
         <svg 
           ref={svgRef}
-          className={`canvas ${isDragging ? 'dragging' : ''}`}
+          className={canvasClassName}
           onMouseDown={onDragStart}
           onClick={onCanvasClick}
         >
@@ -164,13 +222,36 @@ const VirtualCanvas = ({
             ))}
           </g>
         </svg>
+        
+        {/* 控制按钮组 */}
+        <div className="canvas-controls">
+          <button className="control-button" onClick={toggleGrid} title={showGrid ? "隐藏网格" : "显示网格"}>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.1 2.9 22 4 22H20C21.1 22 22 21.1 22 20V4C22 2.9 21.1 2 20 2ZM8 20H4V16H8V20ZM8 14H4V10H8V14ZM8 8H4V4H8V8ZM14 20H10V16H14V20ZM14 14H10V10H14V14ZM14 8H10V4H14V8ZM20 20H16V16H20V20ZM20 14H16V10H20V14ZM20 8H16V4H20V8Z" fill="currentColor"/>
+            </svg>
+          </button>
+          <button className="control-button" onClick={resetView} title="重置视图">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 5V1L7 6L12 11V7C15.31 7 18 9.69 18 13C18 16.31 15.31 19 12 19C8.69 19 6 16.31 6 13H4C4 17.42 7.58 21 12 21C16.42 21 20 17.42 20 13C20 8.58 16.42 5 12 5Z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
       </div>
+      
       <div className="hint-text">
         Press Tab and feel free to ask
       </div>
-      <div className="zoom-indicator">
-        缩放: {Math.round(transform.scale * 100)}%
-      </div>
+      
+      {/* 缩放指示器 - 只在showZoomIndicator为true时显示 */}
+      {showZoomIndicator && (
+        <div className="zoom-indicator zoom-visible">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '8px' }}>
+            <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3C5.91 3 3 5.91 3 9.5C3 13.09 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5C5 7.01 7.01 5 9.5 5C11.99 5 14 7.01 14 9.5C14 11.99 11.99 14 9.5 14Z" fill="#444"/>
+            <path d="M12 10H10V12H9V10H7V9H9V7H10V9H12V10Z" fill="#444"/>
+          </svg>
+          <span style={{ fontWeight: 'bold' }}>缩放: {Math.round(transform.scale * 100)}%</span>
+        </div>
+      )}
     </div>
   );
 };

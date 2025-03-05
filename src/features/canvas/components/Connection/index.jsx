@@ -27,12 +27,17 @@ const Connection = ({ startNode, endNode, basePosition }) => {
   const isAnswer = endNode.type === 'answer';
   const connectionClass = `connection-path ${isQuestion ? 'question' : ''} ${isAnswer ? 'answer' : ''}`;
   const markerEnd = isQuestion ? 'url(#arrowhead-question)' : isAnswer ? 'url(#arrowhead-answer)' : 'url(#arrowhead)';
+  
+  // 根据节点类型设置线条颜色
+  const strokeColor = isQuestion ? '#1890ff' : isAnswer ? '#52c41a' : '#999';
+  const strokeOpacity = isQuestion || isAnswer ? 0.7 : 1;
 
   return (
     <path
       d={path}
       fill="none"
-      stroke="#999"
+      stroke={strokeColor}
+      strokeOpacity={strokeOpacity}
       strokeWidth="1.5"
       strokeDasharray={isQuestion ? "5,5" : "none"} // 问题节点使用虚线
       markerEnd={markerEnd}
