@@ -8,7 +8,9 @@ export const useZoom = (initialWidth, initialHeight) => {
   });
 
   const handleZoom = useCallback((event) => {
+    // 阻止默认滚动行为
     event.preventDefault();
+    
     const scaleChange = event.deltaY > 0 ? 0.9 : 1.1;
     const newScale = Math.min(Math.max(0.1, transform.scale * scaleChange), 4);
     

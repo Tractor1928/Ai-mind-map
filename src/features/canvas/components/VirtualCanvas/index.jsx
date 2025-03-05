@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import Node from '../../../nodes/components/Node';
 import Connection from '../Connection';
 import { isNodeVisible } from '../../utils/viewport';
@@ -27,6 +27,28 @@ const VirtualCanvas = ({
     source: rectangles.find(n => n.id === r.parentId),
     target: r
   }));
+  
+  // 添加对SVG元素的引用
+  const svgRef = useRef(null);
+
+  // 使用useEffect添加被动事件监听器
+  useEffect(() => {
+    const svgElement = svgRef.current;
+    if (!svgElement || !onZoom) return;
+
+    // 滚轮事件处理函数
+    const handleWheel = (event) => {
+      onZoom(event);
+    };
+
+    // 使用被动事件监听器添加滚轮事件
+    svgElement.addEventListener('wheel', handleWheel, { passive: false });
+
+    // 清理函数
+    return () => {
+      svgElement.removeEventListener('wheel', handleWheel);
+    };
+  }, [onZoom]);
 
   const handleNodeClick = (e, id) => {
     e.stopPropagation();
@@ -66,9 +88,9 @@ const VirtualCanvas = ({
     <div className="split-layout">
       <div className="mindmap-container">
         <svg 
+          ref={svgRef}
           className={`canvas ${isDragging ? 'dragging' : ''}`}
           onMouseDown={onDragStart}
-          onWheel={onZoom}
           onClick={onCanvasClick}
         >
           <defs>
