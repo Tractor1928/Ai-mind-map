@@ -6,13 +6,21 @@
   overflow: hidden;
   text-align: left;
   font-family: inherit;
-  line-height: 1.2;
+  line-height: 1.5;
   word-wrap: break-word;
   white-space: pre-wrap;
   box-sizing: border-box;
   width: 100%;
+  height: 100%;
   margin: 0;
+  padding: 12px;
   display: block;
+  font-size: 14px;
+  color: #333;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 .rectangle text {
@@ -96,6 +104,7 @@
 }
 
 .node {
+  position: relative;
   cursor: pointer;
 }
 
@@ -106,6 +115,7 @@
   rx: 8px;
   ry: 8px;
   filter: drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.1));
+  transition: stroke 0.2s, filter 0.2s;
 }
 
 .node.selected .node-rect {
@@ -129,34 +139,27 @@
 }
 
 .node-content {
-  padding: 12px;
+  padding: 0;
   overflow: visible;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 .node-text {
   font-size: 14px;
   line-height: 1.5;
   margin: 0;
-  padding: 0;
+  padding: 12px;
   white-space: pre-wrap;
   word-break: break-word;
   overflow: visible;
   color: #333;
-}
-
-.node-textarea {
-  width: 100%;
-  min-height: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  line-height: 1.5;
-  resize: none;
-  padding: 0;
-  margin: 0;
-  font-family: inherit;
-  color: #333;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 .node-text p {

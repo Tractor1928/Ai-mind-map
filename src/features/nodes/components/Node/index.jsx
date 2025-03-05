@@ -174,7 +174,8 @@ const Node = ({
       <rect
         width={node.width}
         height={contentHeight}
-        rx={5}
+        rx={8}
+        ry={8}
         className={`node-rect ${node.type}`}
         style={{ transition: 'height 0.3s ease, width 0.3s ease' }}
       />

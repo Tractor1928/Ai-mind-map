@@ -77,6 +77,37 @@ const VirtualCanvas = ({
     };
   }, [onZoom, showZoomIndicatorTemporarily]);
 
+  // 添加防止文本选择的事件处理
+  useEffect(() => {
+    const svgElement = svgRef.current;
+    if (!svgElement) return;
+
+    const handleMouseDown = (e) => {
+      // 只有当点击的是画布元素（而不是节点）时才添加dragging-canvas类
+      if (e.target === svgElement || e.target.tagName === 'svg' || e.target.classList.contains('canvas')) {
+        document.body.classList.add('dragging-canvas');
+      }
+    };
+
+    const handleMouseUp = () => {
+      // 移除禁用文本选择的类
+      document.body.classList.remove('dragging-canvas');
+    };
+
+    // 添加事件监听器
+    svgElement.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mouseleave', handleMouseUp);
+
+    // 清理函数
+    return () => {
+      svgElement.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseleave', handleMouseUp);
+      document.body.classList.remove('dragging-canvas');
+    };
+  }, []);
+
   // 切换网格显示
   const toggleGrid = () => {
     setShowGrid(!showGrid);
@@ -148,7 +179,12 @@ const VirtualCanvas = ({
         <svg 
           ref={svgRef}
           className={canvasClassName}
-          onMouseDown={onDragStart}
+          onMouseDown={(e) => {
+            // 添加dragging-canvas类
+            document.body.classList.add('dragging-canvas');
+            // 调用原始的onDragStart
+            if (onDragStart) onDragStart(e);
+          }}
           onClick={onCanvasClick}
         >
           <defs>
