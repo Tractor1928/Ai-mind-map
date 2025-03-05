@@ -1,7 +1,11 @@
 // src/components/Node/index.jsx
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import './Node.css';
 import { marked } from 'marked';
+import { debounce } from 'lodash'; // 确保项目中安装了lodash
+
+// 最大允许输入的字符数
+const MAX_INPUT_LENGTH = 5000;
 
 const Node = ({ 
   node, 
@@ -19,15 +23,54 @@ const Node = ({
   const contentRef = useRef(null);
   const [contentHeight, setContentHeight] = useState(node.height);
   const [contentWidth, setContentWidth] = useState(node.width);
+  const [renderedHtml, setRenderedHtml] = useState('');
+  
+  // 使用useEffect缓存Markdown渲染结果，避免重复渲染
+  useEffect(() => {
+    if (!isEditing && node.text) {
+      try {
+        // 限制渲染的文本长度
+        const textToRender = node.text.length > MAX_INPUT_LENGTH 
+          ? node.text.substring(0, MAX_INPUT_LENGTH) + '...(文本过长)' 
+          : node.text;
+        
+        // 使用marked渲染Markdown
+        const html = marked(textToRender || '');
+        setRenderedHtml(html);
+      } catch (error) {
+        console.error('Markdown渲染错误:', error);
+        setRenderedHtml(`<p>${node.text}</p>`);
+      }
+    }
+  }, [isEditing, node.text]);
   
   // 添加自动调整高度的效果
   useEffect(() => {
     if (isEditing && textareaRef.current) {
       const textarea = textareaRef.current;
       textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 500)}px`; // 限制最大高度
     }
   }, [isEditing, node.text]);
+
+  // 创建防抖的尺寸变化处理函数
+  const debouncedHeightChange = useCallback(
+    debounce((id, height) => {
+      if (onHeightChange) {
+        onHeightChange(id, height);
+      }
+    }, 200), // 200ms防抖
+    [onHeightChange]
+  );
+
+  const debouncedWidthChange = useCallback(
+    debounce((id, width) => {
+      if (onWidthChange) {
+        onWidthChange(id, width);
+      }
+    }, 200), // 200ms防抖
+    [onWidthChange]
+  );
 
   // 使用 ResizeObserver 监测内容高度和宽度变化
   useEffect(() => {
@@ -37,20 +80,16 @@ const Node = ({
       for (let entry of entries) {
         // 处理高度变化
         const newHeight = Math.max(entry.contentRect.height + 16, 100); // 16px 为上下 padding 总和
-        if (Math.abs(newHeight - contentHeight) > 5) { // 只有高度变化超过 5px 才更新，避免微小变化触发更新
+        if (Math.abs(newHeight - contentHeight) > 10) { // 增加阈值，减少更新频率
           setContentHeight(newHeight);
-          if (onHeightChange) {
-            onHeightChange(node.id, newHeight);
-          }
+          debouncedHeightChange(node.id, newHeight);
         }
         
         // 处理宽度变化
         const newWidth = Math.max(entry.contentRect.width + 16, 200); // 16px 为左右 padding 总和
-        if (Math.abs(newWidth - contentWidth) > 5 && newWidth <= 600) { // 只有宽度变化超过 5px 且不超过最大宽度才更新
+        if (Math.abs(newWidth - contentWidth) > 10 && newWidth <= 600) { // 增加阈值，减少更新频率
           setContentWidth(newWidth);
-          if (onWidthChange) {
-            onWidthChange(node.id, newWidth);
-          }
+          debouncedWidthChange(node.id, newWidth);
         }
       }
     });
@@ -59,8 +98,10 @@ const Node = ({
     
     return () => {
       resizeObserver.disconnect();
+      debouncedHeightChange.cancel();
+      debouncedWidthChange.cancel();
     };
-  }, [node.id, contentHeight, contentWidth, onHeightChange, onWidthChange]);
+  }, [node.id, contentHeight, contentWidth, debouncedHeightChange, debouncedWidthChange]);
 
   // 配置 marked 选项
   marked.setOptions({
@@ -71,6 +112,19 @@ const Node = ({
   const handleMouseDown = (e) => {
     // 阻止事件冒泡，这样节点的点击不会触发画布的拖拽
     e.stopPropagation();
+  };
+
+  // 处理文本变化，限制输入长度
+  const handleTextChange = (e) => {
+    const value = e.target.value;
+    if (value.length <= MAX_INPUT_LENGTH) {
+      onTextChange?.(node.id, value);
+    } else {
+      // 如果超出长度限制，截断文本
+      onTextChange?.(node.id, value.substring(0, MAX_INPUT_LENGTH));
+      // 可以添加提示，但使用console而不是alert，避免阻塞UI
+      console.warn(`文本长度已超过${MAX_INPUT_LENGTH}字符限制，多余内容将被截断`);
+    }
   };
 
   // 新增处理键盘事件的函数
@@ -88,23 +142,23 @@ const Node = ({
         <textarea
           ref={textareaRef}
           value={node.text}
-          onChange={(e) => onTextChange?.(node.id, e.target.value)}
+          onChange={handleTextChange}
           onBlur={onTextBlur}
           onKeyDown={handleKeyDown}
           className="node-textarea"
           autoFocus
           placeholder="输入你的问题..."
+          maxLength={MAX_INPUT_LENGTH}
         />
       );
     }
 
-    // 使用 marked 渲染 Markdown
-    const html = marked(node.text || '');
+    // 使用缓存的HTML内容
     return (
       <div 
         ref={contentRef}
         className="node-text"
-        dangerouslySetInnerHTML={{ __html: html }}
+        dangerouslySetInnerHTML={{ __html: renderedHtml }}
       />
     );
   };

@@ -12,6 +12,11 @@ export class TreeLayoutManager {
       siblingGap: options.siblingGap || 100, // 兄弟节点之间的间隙
       ...options
     };
+    
+    // 缓存上次计算的结果
+    this.lastNodes = null;
+    this.lastResult = null;
+    this.lastConfig = JSON.stringify(this.config);
   }
 
   /**
@@ -23,6 +28,48 @@ export class TreeLayoutManager {
       ...this.config,
       ...newConfig
     };
+    // 配置变更，清除缓存
+    this.lastConfig = JSON.stringify(this.config);
+    this.lastNodes = null;
+    this.lastResult = null;
+  }
+
+  /**
+   * 检查是否需要重新计算布局
+   * @param {Array} nodes - 节点数组
+   * @returns {boolean} - 是否需要重新计算
+   */
+  needsRecalculation(nodes) {
+    // 如果没有缓存结果，需要重新计算
+    if (!this.lastNodes || !this.lastResult) return true;
+    
+    // 如果节点数量不同，需要重新计算
+    if (nodes.length !== this.lastNodes.length) return true;
+    
+    // 如果配置变更，需要重新计算
+    if (this.lastConfig !== JSON.stringify(this.config)) return true;
+    
+    // 检查节点是否有变化
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      const lastNode = this.lastNodes.find(n => n.id === node.id);
+      
+      // 如果找不到对应节点，需要重新计算
+      if (!lastNode) return true;
+      
+      // 检查关键属性是否变化
+      if (
+        lastNode.parentId !== node.parentId ||
+        lastNode.width !== node.width ||
+        lastNode.height !== node.height ||
+        JSON.stringify(lastNode.childrenIds) !== JSON.stringify(node.childrenIds)
+      ) {
+        return true;
+      }
+    }
+    
+    // 没有变化，不需要重新计算
+    return false;
   }
 
   // 计算树形布局
@@ -30,7 +77,22 @@ export class TreeLayoutManager {
     if (!nodes || nodes.length === 0) {
       return nodes;
     }
-
+    
+    // 检查是否需要重新计算
+    if (!this.needsRecalculation(nodes)) {
+      console.log('使用缓存的布局结果');
+      // 更新节点位置，但保持布局不变
+      return nodes.map(node => {
+        const cachedNode = this.lastResult.find(n => n.id === node.id);
+        if (cachedNode) {
+          return { ...node, x: cachedNode.x, y: cachedNode.y };
+        }
+        return node;
+      });
+    }
+    
+    console.log('重新计算布局');
+    
     // 创建层次结构数据
     const stratify = d3.stratify()
       .id(d => d.id)
@@ -94,6 +156,11 @@ export class TreeLayoutManager {
       }
       return node;
     });
+    
+    // 缓存计算结果
+    this.lastNodes = JSON.parse(JSON.stringify(nodes));
+    this.lastResult = JSON.parse(JSON.stringify(updatedNodes));
+    this.lastConfig = JSON.stringify(this.config);
 
     return updatedNodes;
   }

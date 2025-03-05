@@ -1,7 +1,8 @@
 // src/hooks/useNodeOperations.js
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { RectNode, NODE_TYPES } from '../models/RectNode';
 import { defaultLayoutService } from '../../layout/services/LayoutService';
+import { debounce } from 'lodash'; // 确保项目中安装了lodash
 
 export const useNodeOperations = () => {
   const [rectangles, setRectangles] = useState([]);
@@ -11,6 +12,18 @@ export const useNodeOperations = () => {
   
   // 使用默认布局服务
   const layoutService = useMemo(() => defaultLayoutService, []);
+  
+  // 使用ref跟踪文本更新状态，避免频繁触发布局更新
+  const textUpdateTimerRef = useRef(null);
+  const pendingUpdatesRef = useRef(new Map());
+
+  // 创建防抖的布局更新函数
+  const debouncedLayoutUpdate = useCallback(
+    debounce(() => {
+      setShouldUpdateLayout(true);
+    }, 300), // 300ms防抖
+    []
+  );
 
   // 仅在节点添加或删除时更新布局
   useEffect(() => {
@@ -20,6 +33,16 @@ export const useNodeOperations = () => {
       setShouldUpdateLayout(false);
     }
   }, [shouldUpdateLayout, rectangles, layoutService]);
+
+  // 组件卸载时清理
+  useEffect(() => {
+    return () => {
+      if (textUpdateTimerRef.current) {
+        clearTimeout(textUpdateTimerRef.current);
+      }
+      debouncedLayoutUpdate.cancel();
+    };
+  }, [debouncedLayoutUpdate]);
 
   const addNode = useCallback((currentRect, initialText = '', type = null) => {
     // 如果没有当前选中的节点，说明是第一层
@@ -71,8 +94,15 @@ export const useNodeOperations = () => {
   }, [rectangles]);
 
   const updateNodeText = useCallback((id, text) => {
+    // 立即更新文本，确保用户输入的即时反馈
     setRectangles(prev => {
-      const updatedRects = prev.map(rect => {
+      // 检查文本是否有实质性变化
+      const currentNode = prev.find(rect => rect.id === id);
+      if (currentNode && currentNode.text === text) {
+        return prev; // 如果文本没有变化，不更新状态
+      }
+      
+      return prev.map(rect => {
         if (rect.id === id) {
           const updatedRect = new RectNode(
             rect.id,
@@ -89,12 +119,33 @@ export const useNodeOperations = () => {
         }
         return rect;
       });
-      
-      // 触发布局更新
-      setShouldUpdateLayout(true);
-      return updatedRects;
     });
-  }, []);
+    
+    // 使用防抖函数延迟触发布局更新
+    // 将尺寸变化检测和布局更新延迟处理
+    if (textUpdateTimerRef.current) {
+      clearTimeout(textUpdateTimerRef.current);
+    }
+    
+    textUpdateTimerRef.current = setTimeout(() => {
+      setRectangles(prev => {
+        const currentNode = prev.find(rect => rect.id === id);
+        if (!currentNode) return prev;
+        
+        // 检查当前节点与初始状态相比是否有显著尺寸变化
+        const initialNode = rectangles.find(r => r.id === id);
+        if (initialNode && (
+            Math.abs(currentNode.width - initialNode.width) > 10 || 
+            Math.abs(currentNode.height - initialNode.height) > 10
+        )) {
+          // 如果有显著变化，触发布局更新
+          debouncedLayoutUpdate();
+        }
+        
+        return prev;
+      });
+    }, 500); // 延迟500ms检查尺寸变化
+  }, [rectangles, debouncedLayoutUpdate]);
 
   const deleteNode = useCallback((id) => {
     setRectangles(prev => {
@@ -149,7 +200,7 @@ export const useNodeOperations = () => {
     setRectangles(prev => {
       // 检查高度是否有实质性变化，避免不必要的更新
       const node = prev.find(r => r.id === id);
-      if (!node || Math.abs(node.height - height) < 5) {
+      if (!node || Math.abs(node.height - height) < 10) {
         return prev;
       }
 
@@ -162,16 +213,18 @@ export const useNodeOperations = () => {
         return rect;
       });
       
+      // 使用防抖函数触发布局更新
+      debouncedLayoutUpdate();
       return updatedRects;
     });
-  }, []);
+  }, [debouncedLayoutUpdate]);
 
   // 添加更新节点宽度的方法
   const updateNodeWidth = useCallback((id, width) => {
     setRectangles(prev => {
       // 检查宽度是否有实质性变化，避免不必要的更新
       const node = prev.find(r => r.id === id);
-      if (!node || Math.abs(node.width - width) < 5) {
+      if (!node || Math.abs(node.width - width) < 10) {
         return prev;
       }
 
@@ -186,11 +239,11 @@ export const useNodeOperations = () => {
         return rect;
       });
       
-      // 宽度变化可能需要重新计算布局
-      setShouldUpdateLayout(true);
+      // 使用防抖函数触发布局更新
+      debouncedLayoutUpdate();
       return updatedRects;
     });
-  }, []);
+  }, [debouncedLayoutUpdate]);
 
   return {
     rectangles,

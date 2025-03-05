@@ -110,7 +110,10 @@ export class AIService {
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               const data = line.slice(5);
-              if (data === '[DONE]') break;
+              if (data === '[DONE]') {
+                console.log('Stream completed with [DONE] marker');
+                break;
+              }
 
               try {
                 const parsed = JSON.parse(data);
