@@ -111,11 +111,15 @@
 }
 
 .node.question .node-rect {
-  fill: #e3f2fd;
+  fill: #e6f7ff;
+  stroke: #1890ff;
+  stroke-width: 1.5;
 }
 
 .node.answer .node-rect {
-  fill: #f5f5f5;
+  fill: #f6ffed;
+  stroke: #52c41a;
+  stroke-width: 1.5;
 }
 
 .node-content {
