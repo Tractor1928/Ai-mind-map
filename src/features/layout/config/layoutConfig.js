@@ -4,7 +4,7 @@
  */
 export const DEFAULT_LAYOUT_CONFIG = {
   // 同级节点之间的最小垂直距离
-  minNodeDistance: 60,
+  minNodeDistance: 80,
   
   // 节点之间的最小水平间隙
   minHorizontalGap: 40,

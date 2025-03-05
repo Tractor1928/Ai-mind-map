@@ -10,6 +10,8 @@ export class TreeLayoutManager {
       minHorizontalGap: options.minHorizontalGap || 100, // 最小水平间隙
       questionAnswerGap: options.questionAnswerGap || 150, // 问答节点之间的间隙
       siblingGap: options.siblingGap || 100, // 兄弟节点之间的间隙
+      defaultNodeWidth: options.defaultNodeWidth || 200, // 默认节点宽度
+      defaultNodeHeight: options.defaultNodeHeight || 100, // 默认节点高度
       ...options
     };
     
@@ -62,7 +64,8 @@ export class TreeLayoutManager {
         lastNode.parentId !== node.parentId ||
         lastNode.width !== node.width ||
         lastNode.height !== node.height ||
-        JSON.stringify(lastNode.childrenIds) !== JSON.stringify(node.childrenIds)
+        JSON.stringify(lastNode.childrenIds) !== JSON.stringify(node.childrenIds) ||
+        lastNode.text !== node.text // 检查文本内容变化，可能影响节点高度
       ) {
         return true;
       }
@@ -111,12 +114,12 @@ export class TreeLayoutManager {
     root.each(node => {
       const originalNode = nodes.find(n => n.id.toString() === node.id);
       if (originalNode) {
-        node.width = originalNode.width || 200;
-        node.height = originalNode.height || 100;
+        node.width = originalNode.width || this.config.defaultNodeWidth;
+        node.height = originalNode.height || this.config.defaultNodeHeight;
         node.type = originalNode.type; // 保存节点类型
       } else {
-        node.width = 200;
-        node.height = 100;
+        node.width = this.config.defaultNodeWidth;
+        node.height = this.config.defaultNodeHeight;
       }
     });
 
@@ -171,7 +174,7 @@ export class TreeLayoutManager {
     
     // 获取原始节点数据
     const originalNode = allNodes.find(n => n.id.toString() === node.id);
-    const nodeWidth = originalNode ? originalNode.width : 200;
+    const nodeWidth = originalNode ? originalNode.width : this.config.defaultNodeWidth;
     
     // 如果没有子节点，返回当前节点宽度
     if (!node.children || node.children.length === 0) {
@@ -201,7 +204,7 @@ export class TreeLayoutManager {
       for (const node of nodesAtDepth) {
         // 获取原始节点数据
         const originalNode = allNodes.find(n => n.id.toString() === node.id);
-        const nodeWidth = originalNode ? originalNode.width : 200;
+        const nodeWidth = originalNode ? originalNode.width : this.config.defaultNodeWidth;
         
         // 如果是根节点，设置初始位置
         if (depth === 0) {
@@ -217,7 +220,7 @@ export class TreeLayoutManager {
           node.children.forEach(child => {
             // 获取子节点的原始数据
             const childOriginal = allNodes.find(n => n.id.toString() === child.id);
-            const childWidth = childOriginal ? childOriginal.width : 200;
+            const childWidth = childOriginal ? childOriginal.width : this.config.defaultNodeWidth;
             
             // 计算子节点与父节点之间的最小间距
             // 对于问答对，使用更大的间距
@@ -264,8 +267,8 @@ export class TreeLayoutManager {
         
         // 计算所需的最小间距，考虑节点高度和额外的间距
         // 使用更大的基础间距，并根据节点高度动态调整
-        const heightFactor = Math.max(1, (previous.height + current.height) / 250);
-        const requiredGap = (previous.height / 2) + (current.height / 2) + (this.config.minNodeDistance * heightFactor);
+        const heightFactor = Math.max(1.2, (previous.height + current.height) / 200);
+        const requiredGap = (previous.height / 2) + (current.height / 2) + (this.config.minNodeDistance * heightFactor * 1.5);
         
         // 如果间距不足，向下移动当前节点及其子树
         if (current.x - previous.x < requiredGap) {
@@ -306,8 +309,8 @@ export class TreeLayoutManager {
             const previous = node.children[i - 1];
             
             // 使用更大的基础间距，并根据节点高度动态调整
-            const heightFactor = Math.max(1, (previous.height + current.height) / 250);
-            const requiredGap = (previous.height / 2) + (current.height / 2) + (this.config.minNodeDistance * heightFactor);
+            const heightFactor = Math.max(1.2, (previous.height + current.height) / 200);
+            const requiredGap = (previous.height / 2) + (current.height / 2) + (this.config.minNodeDistance * heightFactor * 1.5);
             
             if (current.x - previous.x < requiredGap) {
               const offset = requiredGap - (current.x - previous.x);
@@ -341,8 +344,9 @@ export class TreeLayoutManager {
     // 获取每个子树的边界
     const subtreeBounds = siblings.map(node => {
       const descendants = node.descendants();
-      const minY = Math.min(...descendants.map(d => d.x - d.height / 2));
-      const maxY = Math.max(...descendants.map(d => d.x + d.height / 2));
+      // 增加边界的安全边距
+      const minY = Math.min(...descendants.map(d => d.x - d.height / 2)) - this.config.minNodeDistance;
+      const maxY = Math.max(...descendants.map(d => d.x + d.height / 2)) + this.config.minNodeDistance;
       return { node, minY, maxY };
     });
     
@@ -353,7 +357,7 @@ export class TreeLayoutManager {
       
       // 如果有重叠，向下移动当前子树
       if (current.minY <= previous.maxY) {
-        const offset = previous.maxY - current.minY + this.config.minNodeDistance;
+        const offset = previous.maxY - current.minY + this.config.minNodeDistance * 2;
         this._shiftSubtree(current.node, offset);
         
         // 更新当前子树的边界
