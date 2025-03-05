@@ -22,15 +22,21 @@ const Connection = ({ startNode, endNode, basePosition }) => {
       ${endX},${endY}
   `;
 
+  // 根据节点类型确定连接线样式
+  const isQuestion = endNode.type === 'question';
+  const isAnswer = endNode.type === 'answer';
+  const connectionClass = `connection-path ${isQuestion ? 'question' : ''} ${isAnswer ? 'answer' : ''}`;
+  const markerEnd = isQuestion ? 'url(#arrowhead-question)' : isAnswer ? 'url(#arrowhead-answer)' : 'url(#arrowhead)';
+
   return (
     <path
       d={path}
       fill="none"
       stroke="#999"
       strokeWidth="1.5"
-      strokeDasharray={endNode.type === 'answer' ? "none" : "5,5"} // 问题节点使用虚线
-      markerEnd="url(#arrowhead)"
-      className="connection-path"
+      strokeDasharray={isQuestion ? "5,5" : "none"} // 问题节点使用虚线
+      markerEnd={markerEnd}
+      className={connectionClass}
     />
   );
 };

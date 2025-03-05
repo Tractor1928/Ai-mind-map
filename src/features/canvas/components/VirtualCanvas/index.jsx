@@ -116,6 +116,28 @@ const VirtualCanvas = ({
             >
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#2196f3"/>
             </marker>
+            <marker
+              id="arrowhead-question"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#1890ff"/>
+            </marker>
+            <marker
+              id="arrowhead-answer"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#52c41a"/>
+            </marker>
           </defs>
           <g transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}>
             {visibleLinks.map(link => (
@@ -145,6 +167,9 @@ const VirtualCanvas = ({
       </div>
       <div className="hint-text">
         Press Tab and feel free to ask
+      </div>
+      <div className="zoom-indicator">
+        缩放: {Math.round(transform.scale * 100)}%
       </div>
     </div>
   );
