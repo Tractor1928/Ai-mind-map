@@ -1,22 +1,25 @@
 // src/hooks/useNodeOperations.js
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { RectNode, NODE_TYPES } from '../models/RectNode';
-import { calculateTreeLayout } from '../../layout/utils/treeLayout';
+import { defaultLayoutService } from '../../layout/services/LayoutService';
 
 export const useNodeOperations = () => {
   const [rectangles, setRectangles] = useState([]);
   const [selectedRect, setSelectedRect] = useState(null);
   const [editingRect, setEditingRect] = useState(null);
   const [shouldUpdateLayout, setShouldUpdateLayout] = useState(false);
+  
+  // 使用默认布局服务
+  const layoutService = useMemo(() => defaultLayoutService, []);
 
   // 仅在节点添加或删除时更新布局
   useEffect(() => {
     if (shouldUpdateLayout && rectangles.length > 0) {
-      const updatedRects = calculateTreeLayout([...rectangles]);
+      const updatedRects = layoutService.calculateLayout([...rectangles]);
       setRectangles(updatedRects);
       setShouldUpdateLayout(false);
     }
-  }, [shouldUpdateLayout, rectangles]);
+  }, [shouldUpdateLayout, rectangles, layoutService]);
 
   const addNode = useCallback((currentRect, initialText = '', type = null) => {
     // 如果没有当前选中的节点，说明是第一层

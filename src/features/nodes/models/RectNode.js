@@ -1,3 +1,5 @@
+import { DEFAULT_LAYOUT_CONFIG } from '../../layout/config/layoutConfig';
+
 // 定义节点类型常量
 const NODE_TYPES = Object.freeze({
   QUESTION: 'question',
@@ -6,7 +8,7 @@ const NODE_TYPES = Object.freeze({
 
 // 创建一个矩形节点类
 class RectNode {
-  constructor(id, x, y, text = '', type = NODE_TYPES.QUESTION) {
+  constructor(id, x, y, text = '', type = NODE_TYPES.QUESTION, config = DEFAULT_LAYOUT_CONFIG) {
     this.id = id;
     this.x = x;
     this.y = y;
@@ -15,13 +17,15 @@ class RectNode {
     this.parentId = null;    // 添加父节点ID
     this.childrenIds = [];   // 添加子节点ID数组
     this.level = 0;  // 添加层级属性
-    this.minWidth = 200;     // 最小宽度
-    this.maxWidth = 600;     // 最大宽度
-    this.width = 200;        // 初始宽度设为最小宽度
-    this.height = 100;   
-    this.padding = 10;
-    this.fontSize = 14;
-    this.fontFamily = 'Arial';
+    
+    // 使用配置参数
+    this.minWidth = config.minNodeWidth;
+    this.maxWidth = config.maxNodeWidth;
+    this.width = config.defaultNodeWidth;
+    this.height = config.defaultNodeHeight;
+    this.padding = config.nodePadding;
+    this.fontSize = config.nodeFontSize;
+    this.fontFamily = config.nodeFontFamily;
     
     // 根据文本内容计算尺寸
     const dimensions = this.calculateDimensions(text);

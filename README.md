@@ -74,3 +74,55 @@ src/
 - 使用 ESLint 和 Prettier 进行代码格式化
 - 遵循 TypeScript 类型定义
 - 组件采用函数式编程
+
+## 布局系统
+
+本项目实现了一个灵活的节点布局系统，用于处理思维导图中节点的动态布局。
+
+### 布局系统架构
+
+布局系统由以下几个主要部分组成：
+
+1. **布局服务 (LayoutService)**：
+   - 管理不同类型的布局算法
+   - 提供统一的接口进行布局计算
+   - 支持动态切换布局类型
+   - 位于 `src/features/layout/services/LayoutService.js`
+
+2. **布局管理器 (LayoutManager)**：
+   - 实现具体的布局算法
+   - 当前支持树形布局 (TreeLayoutManager)
+   - 未来可扩展支持力导向布局、径向布局等
+   - 位于 `src/features/layout/utils/treeLayout.js`
+
+3. **布局配置 (LayoutConfig)**：
+   - 集中管理布局参数
+   - 支持自定义配置
+   - 位于 `src/features/layout/config/layoutConfig.js`
+
+### 使用方法
+
+```javascript
+// 使用默认布局服务
+import { defaultLayoutService } from 'features/layout/services/LayoutService';
+
+// 计算节点布局
+const updatedNodes = defaultLayoutService.calculateLayout(nodes);
+
+// 更新布局配置
+defaultLayoutService.updateConfig({
+  minNodeDistance: 100,
+  questionAnswerGap: 200
+});
+
+// 切换布局类型
+defaultLayoutService.setLayoutType(LAYOUT_TYPES.TREE);
+```
+
+### 扩展布局系统
+
+要添加新的布局类型，需要：
+
+1. 创建新的布局管理器类，实现 `calculateLayout` 方法
+2. 在 `LayoutService` 中注册新的布局管理器
+3. 在 `LAYOUT_TYPES` 中添加新的布局类型
