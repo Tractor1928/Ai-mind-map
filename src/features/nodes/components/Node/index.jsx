@@ -171,6 +171,45 @@ const Node = ({
       onDoubleClick={onDoubleClick}
       className={`node ${isSelected ? 'selected' : ''} ${node.type}`}
     >
+      {/* 添加选中状态的光晕效果 */}
+      {isSelected && (
+        <>
+          <rect
+            width={node.width + 10}
+            height={contentHeight + 10}
+            x={-5}
+            y={-5}
+            rx={12}
+            ry={12}
+            className="node-selection-halo"
+            style={{ 
+              fill: 'none',
+              stroke: node.type === 'question' ? '#1890ff' : node.type === 'answer' ? '#52c41a' : '#2196f3',
+              strokeWidth: 1,
+              strokeDasharray: '5,3',
+              strokeOpacity: 0.6,
+              pointerEvents: 'none'
+            }}
+          />
+          <rect
+            width={node.width + 20}
+            height={contentHeight + 20}
+            x={-10}
+            y={-10}
+            rx={16}
+            ry={16}
+            style={{ 
+              fill: 'none',
+              stroke: node.type === 'question' ? '#1890ff' : node.type === 'answer' ? '#52c41a' : '#2196f3',
+              strokeWidth: 0.5,
+              strokeOpacity: 0.3,
+              pointerEvents: 'none',
+              animation: 'haloAnimation 2s infinite ease-in-out alternate',
+              animationDelay: '0.5s'
+            }}
+          />
+        </>
+      )}
       <rect
         width={node.width}
         height={contentHeight}
