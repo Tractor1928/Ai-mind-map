@@ -7,6 +7,7 @@ import { useAI } from './hooks/useAI';
 import { buildContextPrompt } from './features/ai/utils/contextPrompt';
 import { AI_PROMPTS } from './config/prompts';
 import { Settings } from './components/Settings';
+import ApiTest from './components/ApiTest';
 
 function App() {
   const {
@@ -39,6 +40,7 @@ function App() {
 
   const [isDragging, setIsDragging] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showApiTest, setShowApiTest] = useState(false);
   const [reasoningContent, setReasoningContent] = useState('');
   const [showReasoning, setShowReasoning] = useState(false);
 
@@ -277,17 +279,40 @@ function App() {
     return () => document.removeEventListener('keydown', handleArrowKeys);
   }, [selectedRect, rectangles]);
 
-  return (
-    <div className="App">
-      <div className="app-controls">
-        <button
-          className="control-button"
+  // 处理键盘快捷键
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // 按下 F1 显示/隐藏API测试面板
+      if (e.key === 'F1') {
+        e.preventDefault();
+        setShowApiTest(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // 添加到顶部工具栏
+  const renderToolbar = () => {
+    return (
+      <div className="toolbar">
+        <button 
+          className="toolbar-button" 
           onClick={() => setShowSettings(true)}
+          title="设置"
         >
-          设置
+          ⚙️ 设置
         </button>
-        <button
-          className="control-button"
+        <button 
+          className="toolbar-button" 
+          onClick={() => setShowApiTest(prev => !prev)}
+          title="API测试 (F1)"
+        >
+          🧪 API测试
+        </button>
+        <button 
+          className="toolbar-button"
           onClick={() => {
             // 模拟Tab键功能
             if (!selectedRect && rectangles.length === 0) {
@@ -306,11 +331,12 @@ function App() {
               setEditingRect(newQuestionNode.id);
             }
           }}
+          title="新增节点 (Tab)"
         >
-          新增节点
+          ➕ 新增节点
         </button>
-        <button
-          className="control-button"
+        <button 
+          className="toolbar-button"
           onClick={() => {
             // 模拟Delete键功能
             const currentRect = rectangles.find(r => r.id === selectedRect);
@@ -318,16 +344,25 @@ function App() {
               deleteNode(currentRect.id);
             }
           }}
+          title="删除节点 (Delete)"
         >
-          删除节点
+          🗑️ 删除节点
         </button>
         <button
-          className="control-button reasoning-button"
+          className="toolbar-button"
           onClick={() => setShowReasoning(!showReasoning)}
+          title="显示/隐藏思考过程"
         >
-          {showReasoning ? '隐藏思考过程' : '显示思考过程'}
+          {showReasoning ? '🧠 隐藏思考过程' : '🧠 显示思考过程'}
         </button>
       </div>
+    );
+  };
+
+  return (
+    <div className="App">
+      {renderToolbar()}
+      
       <VirtualCanvas
         rectangles={rectangles}
         selectedRect={selectedRect}
@@ -346,13 +381,41 @@ function App() {
         onNodeHeightChange={handleNodeHeightChange}
         onNodeWidthChange={handleNodeWidthChange}
       />
-      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
-      
-      {showReasoning && reasoningContent && (
+
+      {showSettings && (
+        <Settings onClose={() => setShowSettings(false)} />
+      )}
+
+      {showApiTest && (
+        <div className="api-test-overlay">
+          <div className="api-test-container">
+            <div className="api-test-header">
+              <h2>API 测试模块</h2>
+              <button 
+                className="close-button"
+                onClick={() => setShowApiTest(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <ApiTest />
+          </div>
+        </div>
+      )}
+
+      {showReasoning && (
         <div className="reasoning-panel">
-          <h3>AI思考过程</h3>
+          <div className="reasoning-header">
+            <h3>AI 思考过程</h3>
+            <button 
+              className="close-button"
+              onClick={() => setShowReasoning(false)}
+            >
+              ✕
+            </button>
+          </div>
           <div className="reasoning-content">
-            {reasoningContent}
+            {reasoningContent || <p className="empty-reasoning">AI思考过程将在这里显示。当你编辑问题节点时，可以看到AI的思考过程。</p>}
           </div>
         </div>
       )}
