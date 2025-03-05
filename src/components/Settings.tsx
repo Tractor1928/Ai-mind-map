@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Settings.css';
 import { aiService } from '../services/ai';
+import { aiServiceFactory, ApiMode } from '../services/aiServiceFactory';
+import { useAI } from '../hooks/useAI';
 
 interface SettingsProps {
   onClose: () => void;
@@ -9,19 +11,28 @@ interface SettingsProps {
 export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState('');
+  const [apiMode, setApiMode] = useState<ApiMode>('mock');
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<boolean | null>(null);
+  
+  const { switchApiMode } = useAI();
 
   useEffect(() => {
     const savedApiKey = localStorage.getItem('apiKey');
     const savedModel = localStorage.getItem('model');
+    const savedMode = localStorage.getItem('api_mode') as ApiMode || 'mock';
+    
     if (savedApiKey) setApiKey(savedApiKey);
     if (savedModel) setModel(savedModel);
+    setApiMode(savedMode);
   }, []);
 
   const handleSave = async () => {
     localStorage.setItem('apiKey', apiKey.trim());
     localStorage.setItem('model', model.trim());
+    
+    // 保存API模式
+    switchApiMode(apiMode);
     
     // 测试连接
     setTesting(true);
@@ -43,6 +54,39 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
         <div className="settings-content">
           <div className="settings-field">
             <label className="settings-label">
+              API 模式
+              <div className="settings-description">
+                选择使用真实API或模拟API
+              </div>
+            </label>
+            <div className="settings-radio-group">
+              <label className="settings-radio-label">
+                <input
+                  type="radio"
+                  name="apiMode"
+                  value="real"
+                  checked={apiMode === 'real'}
+                  onChange={() => setApiMode('real')}
+                  className="settings-radio"
+                />
+                真实API（消耗API配额）
+              </label>
+              <label className="settings-radio-label">
+                <input
+                  type="radio"
+                  name="apiMode"
+                  value="mock"
+                  checked={apiMode === 'mock'}
+                  onChange={() => setApiMode('mock')}
+                  className="settings-radio"
+                />
+                模拟API（不消耗API配额）
+              </label>
+            </div>
+          </div>
+
+          <div className="settings-field">
+            <label className="settings-label">
               API Key
               <div className="settings-description">
                 请输入您的 API Key
@@ -54,6 +98,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="ARK_API_KEY"
               className="settings-input"
+              disabled={apiMode === 'mock'}
             />
           </div>
 
@@ -70,6 +115,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
               onChange={(e) => setModel(e.target.value)}
               placeholder="ep-20250211144523-bvb8x"
               className="settings-input"
+              disabled={apiMode === 'mock'}
             />
           </div>
 
@@ -80,7 +126,9 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
           )}
 
           <div className="settings-help">
-            注意：请确保填写正确的配置信息
+            {apiMode === 'mock' ? 
+              '模拟API模式下，系统将使用预设回答，不消耗API配额' : 
+              '请确保填写正确的API Key和模型名称'}
           </div>
         </div>
         <div className="settings-actions">

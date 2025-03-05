@@ -52,6 +52,13 @@ export const ApiTestPanel: React.FC = () => {
   // 组件挂载时检查连接
   useEffect(() => {
     checkConnection();
+    
+    // 添加提示信息
+    if (apiMode === 'mock') {
+      console.info('当前使用模拟API模式，不消耗API配额');
+    } else {
+      console.info('当前使用真实API模式，将消耗API配额');
+    }
   }, [apiMode]);
   
   // 处理表单提交
