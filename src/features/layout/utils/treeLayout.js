@@ -125,8 +125,8 @@ export class TreeLayoutManager {
       .nodeSize([0, 0]) // 初始设置为0，后面会根据实际节点尺寸调整
       .separation((a, b) => {
         // 根据节点高度动态计算分离度
-        const heightFactor = (a.height + b.height) / 2 / 100 + 1.5;
-        return (a.parent === b.parent ? 1.5 : 2) * heightFactor;
+        const heightFactor = (a.height + b.height) / 2 / 100 + 1.2;
+        return (a.parent === b.parent ? 1.2 : 1.8) * heightFactor;
       });
 
     // 计算初始布局
@@ -225,9 +225,9 @@ export class TreeLayoutManager {
             if (originalNode && childOriginal) {
               if ((originalNode.type === 'question' && childOriginal.type === 'answer') ||
                   (originalNode.type === 'answer' && childOriginal.type === 'question')) {
-                horizontalGap = Math.max(this.config.minHorizontalGap, nodeWidth / 2 + this.config.questionAnswerGap);
+                horizontalGap = Math.max(this.config.minHorizontalGap, nodeWidth / 4 + this.config.questionAnswerGap);
               } else {
-                horizontalGap = Math.max(this.config.minHorizontalGap, nodeWidth / 2 + this.config.siblingGap);
+                horizontalGap = Math.max(this.config.minHorizontalGap, nodeWidth / 4 + this.config.siblingGap);
               }
             }
             
@@ -264,7 +264,7 @@ export class TreeLayoutManager {
         
         // 计算所需的最小间距，考虑节点高度和额外的间距
         // 使用更大的基础间距，并根据节点高度动态调整
-        const heightFactor = Math.max(1, (previous.height + current.height) / 200);
+        const heightFactor = Math.max(1, (previous.height + current.height) / 250);
         const requiredGap = (previous.height / 2) + (current.height / 2) + (this.config.minNodeDistance * heightFactor);
         
         // 如果间距不足，向下移动当前节点及其子树
@@ -306,7 +306,7 @@ export class TreeLayoutManager {
             const previous = node.children[i - 1];
             
             // 使用更大的基础间距，并根据节点高度动态调整
-            const heightFactor = Math.max(1, (previous.height + current.height) / 200);
+            const heightFactor = Math.max(1, (previous.height + current.height) / 250);
             const requiredGap = (previous.height / 2) + (current.height / 2) + (this.config.minNodeDistance * heightFactor);
             
             if (current.x - previous.x < requiredGap) {

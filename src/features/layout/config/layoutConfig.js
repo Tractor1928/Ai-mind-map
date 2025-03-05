@@ -4,16 +4,16 @@
  */
 export const DEFAULT_LAYOUT_CONFIG = {
   // 同级节点之间的最小垂直距离
-  minNodeDistance: 80,
+  minNodeDistance: 60,
   
   // 节点之间的最小水平间隙
-  minHorizontalGap: 100,
+  minHorizontalGap: 40,
   
   // 问题和回答节点之间的水平间隙
-  questionAnswerGap: 150,
+  questionAnswerGap: 70,
   
   // 同类型兄弟节点之间的水平间隙
-  siblingGap: 100,
+  siblingGap: 40,
   
   // 节点的最小宽度
   minNodeWidth: 200,
