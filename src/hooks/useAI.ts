@@ -36,7 +36,18 @@ export const useAI = () => {
       );
       return response;
     } catch (err: any) {
-      setError(err.message || '生成回答时出错');
+      // 提供更具体的错误信息
+      let errorMessage = err.message || '生成回答时出错';
+      
+      // 检查是否是API密钥相关的错误
+      if (errorMessage.includes('API密钥') || 
+          errorMessage.includes('401') || 
+          errorMessage.includes('403') || 
+          errorMessage.includes('Forbidden')) {
+        errorMessage = 'API密钥无效或已过期，请在设置中更新您的API密钥';
+      }
+      
+      setError(errorMessage);
       return null;
     } finally {
       setIsLoading(false);
@@ -48,8 +59,11 @@ export const useAI = () => {
     try {
       const service = aiServiceFactory.getService();
       return await service.testConnection();
-    } catch (error) {
-      return false;
+    } catch (error: any) {
+      return { 
+        success: false, 
+        message: error?.message || '连接测试失败' 
+      };
     }
   }, []);
 

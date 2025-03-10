@@ -111,10 +111,9 @@ export class MockAIService {
     }
   }
 
-  async testConnection(): Promise<boolean> {
-    // 模拟服务总是连接成功
-    await delay(300);
-    return true;
+  async testConnection(): Promise<{ success: boolean; message?: string }> {
+    // 模拟API总是返回成功
+    return { success: true };
   }
 }
 

@@ -16,6 +16,7 @@ export const ApiTestPanel: React.FC = () => {
   const [nodes, setNodes] = useState<any[]>([]);
   const [responseTime, setResponseTime] = useState<number | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<boolean | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   
   const { 
     generateResponse, 
@@ -45,8 +46,12 @@ export const ApiTestPanel: React.FC = () => {
   // 检查API连接状态
   const checkConnection = async () => {
     setConnectionStatus(null);
-    const isConnected = await testConnection();
-    setConnectionStatus(isConnected);
+    setConnectionError(null);
+    const result = await testConnection();
+    setConnectionStatus(result.success);
+    if (!result.success && result.message) {
+      setConnectionError(result.message);
+    }
   };
   
   // 组件挂载时检查连接
@@ -139,7 +144,7 @@ export const ApiTestPanel: React.FC = () => {
         ) : connectionStatus ? (
           <p className="status-success">✓ API 连接正常</p>
         ) : (
-          <p className="status-error">✗ API 连接失败</p>
+          <p className="status-error">✗ API 连接失败{connectionError ? `：${connectionError}` : ''}</p>
         )}
       </div>
       

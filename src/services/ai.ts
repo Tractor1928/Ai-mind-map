@@ -88,7 +88,13 @@ export class AIService {
           statusText: response.statusText,
           body: errorText
         });
-        throw new Error(`API 请求失败: ${response.status} ${response.statusText}\n${errorText}`);
+        
+        // 根据状态码提供更具体的错误信息
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('API密钥无效或已过期，请在设置中更新您的API密钥');
+        }
+        
+        throw new Error(`API 请求失败: ${response.status} ${response.statusText}`);
       }
 
       if (onContent) {
@@ -153,11 +159,14 @@ export class AIService {
     }
   }
 
-  async testConnection(): Promise<boolean> {
+  async testConnection(): Promise<{ success: boolean; message?: string }> {
     try {
       const model = localStorage.getItem('model');
       if (!model) {
-        throw new Error('请先在设置中配置模型名称');
+        return { 
+          success: false, 
+          message: '请先在设置中配置模型名称' 
+        };
       }
 
       const url = `${this.getBaseURL()}/models`;
@@ -174,17 +183,33 @@ export class AIService {
           statusText: response.statusText,
           body: errorText
         });
-        throw new Error(`API 请求失败: ${response.status} ${response.statusText}\n${errorText}`);
+        
+        // 根据状态码提供更具体的错误信息
+        if (response.status === 401 || response.status === 403) {
+          return { 
+            success: false, 
+            message: 'API密钥无效或已过期，请更新您的API密钥' 
+          };
+        }
+        
+        return { 
+          success: false, 
+          message: `API连接失败: ${response.status} ${response.statusText}` 
+        };
       }
 
-      return true;
+      return { success: true };
     } catch (error: any) {
       console.error('连接测试失败:', {
         message: error.message,
         stack: error.stack,
         url: this.getBaseURL()
       });
-      return false;
+      
+      return { 
+        success: false, 
+        message: error.message || '连接测试失败，请检查网络连接和API设置' 
+      };
     }
   }
 }
