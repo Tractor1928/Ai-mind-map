@@ -21,6 +21,7 @@
   -webkit-user-select: text;
   -moz-user-select: text;
   -ms-user-select: text;
+  touch-action: manipulation;
 }
 
 .rectangle text {
@@ -106,6 +107,7 @@
 .node {
   position: relative;
   cursor: pointer;
+  touch-action: none;
 }
 
 .node-rect {
@@ -147,6 +149,7 @@
   -webkit-user-select: text;
   -moz-user-select: text;
   -ms-user-select: text;
+  touch-action: manipulation;
 }
 
 .node-text {

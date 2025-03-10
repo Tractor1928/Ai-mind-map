@@ -7,6 +7,8 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  touch-action: none; /* 禁用默认触摸行为 */
+  overflow: hidden;
 }
 
 .canvas.with-grid {
@@ -42,6 +44,7 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  touch-action: none; /* 禁用默认触摸行为 */
 }
 
 .hint-text {

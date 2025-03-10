@@ -1,4 +1,20 @@
 /* src/index.css */
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* 禁用全局滚动 */
+  position: fixed; /* 防止移动设备上的弹性滚动 */
+  touch-action: none; /* 禁用默认触摸行为 */
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 .node {
   border: 1px solid black;
   padding: 10px;
