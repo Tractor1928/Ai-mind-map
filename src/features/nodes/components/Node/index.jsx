@@ -29,17 +29,20 @@ const Node = ({
   useEffect(() => {
     if (!isEditing && node.text) {
       try {
+        // 去除所有换行符
+        const textWithoutNewlines = node.text.replace(/\n/g, ' ');
+        
         // 限制渲染的文本长度
-        const textToRender = node.text.length > MAX_INPUT_LENGTH 
-          ? node.text.substring(0, MAX_INPUT_LENGTH) + '...(文本过长)' 
-          : node.text;
+        const textToRender = textWithoutNewlines.length > MAX_INPUT_LENGTH 
+          ? textWithoutNewlines.substring(0, MAX_INPUT_LENGTH) + '...(文本过长)' 
+          : textWithoutNewlines;
         
         // 使用marked渲染Markdown
         const html = marked(textToRender || '');
         setRenderedHtml(html);
       } catch (error) {
         console.error('Markdown渲染错误:', error);
-        setRenderedHtml(`<p>${node.text}</p>`);
+        setRenderedHtml(`<p>${node.text.replace(/\n/g, ' ')}</p>`);
       }
     }
   }, [isEditing, node.text]);
@@ -117,11 +120,14 @@ const Node = ({
   // 处理文本变化，限制输入长度
   const handleTextChange = (e) => {
     const value = e.target.value;
-    if (value.length <= MAX_INPUT_LENGTH) {
-      onTextChange?.(node.id, value);
+    // 去除所有换行符
+    const valueWithoutNewlines = value.replace(/\n/g, ' ');
+    
+    if (valueWithoutNewlines.length <= MAX_INPUT_LENGTH) {
+      onTextChange?.(node.id, valueWithoutNewlines);
     } else {
       // 如果超出长度限制，截断文本
-      onTextChange?.(node.id, value.substring(0, MAX_INPUT_LENGTH));
+      onTextChange?.(node.id, valueWithoutNewlines.substring(0, MAX_INPUT_LENGTH));
       // 可以添加提示，但使用console而不是alert，避免阻塞UI
       console.warn(`文本长度已超过${MAX_INPUT_LENGTH}字符限制，多余内容将被截断`);
     }
@@ -129,7 +135,7 @@ const Node = ({
 
   // 新增处理键盘事件的函数
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter') {
       e.preventDefault();
       onTextBlur();
     }
@@ -145,6 +151,11 @@ const Node = ({
           onChange={handleTextChange}
           onBlur={onTextBlur}
           onKeyDown={handleKeyDown}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+            }
+          }}
           className="node-textarea"
           autoFocus
           placeholder="输入你的问题..."
