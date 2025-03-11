@@ -13,7 +13,7 @@ export interface AIServiceInterface {
     onReasoningContent?: (reasoning: string) => void
   ): Promise<string>;
   
-  testConnection(): Promise<boolean>;
+  testConnection(): Promise<{ success: boolean; message?: string }>;
 }
 
 /**

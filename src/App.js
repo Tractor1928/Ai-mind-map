@@ -43,8 +43,10 @@ function App() {
   const [showApiTest, setShowApiTest] = useState(false);
   const [reasoningContent, setReasoningContent] = useState('');
   const [showReasoning, setShowReasoning] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [showError, setShowError] = useState(false);
 
-  const { generateResponse } = useAI();
+  const { generateResponse, error: aiError } = useAI();
 
   const handleRectClick = (e, id) => {
     e.stopPropagation();
@@ -82,6 +84,9 @@ function App() {
         
         // 清空思考过程
         setReasoningContent('');
+        // 清空错误信息
+        setErrorMessage(null);
+        setShowError(false);
         
         try {
           const messages = [
@@ -105,6 +110,8 @@ function App() {
         } catch (error) {
           console.error('AI 回答生成失败:', error);
           updateNodeText(answerNode.id, '抱歉，回答生成失败');
+          setErrorMessage(error.message || 'AI 回答生成失败');
+          setShowError(true);
         }
       }
     }
@@ -293,6 +300,14 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // 监听AI错误
+  useEffect(() => {
+    if (aiError) {
+      setErrorMessage(aiError);
+      setShowError(true);
+    }
+  }, [aiError]);
+
   // 添加到顶部工具栏
   const renderToolbar = () => {
     return (
@@ -359,6 +374,41 @@ function App() {
     );
   };
 
+  // 错误提示组件
+  const renderErrorMessage = () => {
+    if (!showError || !errorMessage) return null;
+    
+    return (
+      <div className="error-message-overlay">
+        <div className="error-message-container">
+          <div className="error-message-header">
+            <h3>错误提示</h3>
+            <button 
+              className="close-button"
+              onClick={() => setShowError(false)}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="error-message-content">
+            <p>{errorMessage}</p>
+            {errorMessage.includes('API密钥') && (
+              <button 
+                className="settings-button"
+                onClick={() => {
+                  setShowError(false);
+                  setShowSettings(true);
+                }}
+              >
+                前往设置
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="App">
       {renderToolbar()}
@@ -420,6 +470,8 @@ function App() {
           </div>
         </div>
       )}
+
+      {renderErrorMessage()}
     </div>
   );
 }

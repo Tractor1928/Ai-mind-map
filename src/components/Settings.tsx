@@ -14,6 +14,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
   const [apiMode, setApiMode] = useState<ApiMode>('mock');
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<boolean | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const { switchApiMode } = useAI();
 
@@ -35,13 +36,21 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
     // 保存API模式
     switchApiMode(apiMode);
     
+    // 重置错误信息
+    setErrorMessage(null);
+    
     // 测试连接
     setTesting(true);
-    const success = await aiService.testConnection();
-    setTestResult(success);
+    const result = await aiService.testConnection();
+    setTestResult(result.success);
+    
+    if (!result.success && result.message) {
+      setErrorMessage(result.message);
+    }
+    
     setTesting(false);
 
-    if (success) {
+    if (result.success) {
       setTimeout(() => {
         onClose();
       }, 1000);
@@ -122,7 +131,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose }) => {
 
           {testResult !== null && (
             <div className={`settings-test-result ${testResult ? 'success' : 'error'}`}>
-              {testResult ? '连接测试成功' : '连接测试失败'}
+              {testResult ? '连接测试成功' : errorMessage || '连接测试失败'}
             </div>
           )}
 
