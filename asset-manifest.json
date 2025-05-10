@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/Ai-mind-map/static/css/main.c14a02ff.css",
-    "main.js": "/Ai-mind-map/static/js/main.66537fbc.js",
+    "main.js": "/Ai-mind-map/static/js/main.065b7172.js",
     "index.html": "/Ai-mind-map/index.html",
     "main.c14a02ff.css.map": "/Ai-mind-map/static/css/main.c14a02ff.css.map",
-    "main.66537fbc.js.map": "/Ai-mind-map/static/js/main.66537fbc.js.map"
+    "main.065b7172.js.map": "/Ai-mind-map/static/js/main.065b7172.js.map"
   },
   "entrypoints": [
     "static/css/main.c14a02ff.css",
-    "static/js/main.66537fbc.js"
+    "static/js/main.065b7172.js"
   ]
 }
